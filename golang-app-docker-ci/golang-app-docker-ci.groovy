@@ -66,6 +66,7 @@ node(env.JENKINS_NODE) {
         // Serialize environment variables into map to make check with .containsKey method possible
         Map envVars = [:]
         env.getEnvironment().each { name, value -> envVars.put(name, value) }
+
         // Pipeline parameters injecting and error handling
         if (!envVars.containsKey('APP_POSTTEST_COMMAND') || !envVars.containsKey('RACE_COVER_TEST_FLAGS') ||
                 !envVars.containsKey('JENKINS_NODE') || !envVars.containsKey('GIT_PROJECT_PATH') ||
@@ -76,24 +77,24 @@ node(env.JENKINS_NODE) {
                                     description: 'Git URL of the project to build and test.',
                                     defaultValue: DefaultGitUrl,
                                     trim: true),
-                            string(name: 'GIT_PROJECT_PATH',
-                                    description: 'Git project inner path.',
-                                    defaultValue: DefaultGitProjectPath,
-                                    trim: true),
-                            choice(name: 'JENKINS_NODE',
-                                    description: 'List of possible jenkins nodes to execute.',
-                                    choices: NodesToExecute),
-                            booleanParam(name: 'RACE_COVER_TEST_FLAGS',
-                                    description: String.format('%s%s',
-                                            "Enable -race -cover flags for 'go test' command execution.<br>",
-                                            "Allows you to check what happens when test fails."),
-                                    defaultValue: false),
-                            text(name: 'APP_POSTTEST_COMMAND',
-                                    description: String.format('%s%s%s',
-                                            'Post-test shell command to ensure go app is working.<br>',
-                                            'On success docker image artifacts will be attached attached. ',
-                                            'Leave them empty to skip post-testing.'),
-                                    defaultValue: DefaultPostTestShellCommand)]
+                             string(name: 'GIT_PROJECT_PATH',
+                                     description: 'Git project inner path.',
+                                     defaultValue: DefaultGitProjectPath,
+                                     trim: true),
+                             choice(name: 'JENKINS_NODE',
+                                     description: 'List of possible jenkins nodes to execute.',
+                                     choices: NodesToExecute),
+                             booleanParam(name: 'RACE_COVER_TEST_FLAGS',
+                                     description: String.format('%s%s',
+                                             "Enable -race -cover flags for 'go test' command execution.<br>",
+                                             "Allows you to check what happens when test fails."),
+                                     defaultValue: false),
+                             text(name: 'APP_POSTTEST_COMMAND',
+                                     description: String.format('%s%s%s',
+                                             'Post-test shell command to ensure go app is working.<br>',
+                                             'On success docker image artifacts will be attached attached. ',
+                                             'Leave them empty to skip post-testing.'),
+                                     defaultValue: DefaultPostTestShellCommand)]
                     )
             ])
             println "Pipeline parameters was successfully injected. Select 'Build with parameters' and run again."

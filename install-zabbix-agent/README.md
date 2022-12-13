@@ -36,13 +36,10 @@ ansible role.
    - **NodesToExecute** is a list of jenkins nodes to execute on (with installed ansible), otherwise this will run 
      on jenkins master.
    - **ZabbixAgentVersions** is a list of zabbix agent versions.
-   Other variables you can also set from a jenkins GUI on the second pipeline run.  
-3. Install
-   [Cloudbees Docker Workflow Jenkins plugin](https://docs.cloudbees.com/docs/admin-resources/latest/plugins/docker-workflow).
-4. Install [Ansible](https://plugins.jenkins.io/ansible/) and [AnsiColor](https://plugins.jenkins.io/ansicolor/) 
+   Other variables you can also set from a jenkins GUI on the second pipeline run.
+3. Install [Ansible](https://plugins.jenkins.io/ansible/) and [AnsiColor](https://plugins.jenkins.io/ansicolor/) 
    jenkins plugins on jenkins master and restart jenkins.
-5. Add jenkins user to docker group: `usermod -aG docker jenkins`.
-6. Run pipeline twice. The first run injects jenkins pipeline parameters with your defaults which was specified on
+4. Run pipeline twice. The first run injects jenkins pipeline parameters with your defaults which was specified on
    step 2.
 
 ## Pipeline parameters:
