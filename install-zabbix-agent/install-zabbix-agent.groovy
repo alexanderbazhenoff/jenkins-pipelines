@@ -126,6 +126,7 @@ def outMsg(Integer eventnum, String text) {
 Boolean runAnsible(String ansiblePlaybookText, String ansibleInventoryText, String ansibleGitlabUrl,
                    String ansibleGitlabBranch, String gitCredentialsID, String ansibleExtras = '',
                    String ansibleInstallation = '') {
+    Boolean ansibleExecution = true
     try {
         dir('ansible') {
             sh 'sudo rm -rf *'
@@ -147,10 +148,12 @@ Boolean runAnsible(String ansiblePlaybookText, String ansibleInventoryText, Stri
                     extras: ansibleExtras,
                     installation: ansibleInstallation)
         }
-        return true
     } catch (Exception err) {
         outMsg(3, String.format('Running ansible failed: %s', readableError(err)))
-        return false
+        ansibleExecution = false
+    } finally {
+        sh 'sudo rm -f ansible/inventory.ini'
+        return ansibleExecution
     }
 }
 
@@ -158,7 +161,7 @@ Boolean runAnsible(String ansiblePlaybookText, String ansibleInventoryText, Stri
 node(env.JENKINS_NODE) {
     wrap([$class: 'TimestamperBuildWrapper']) {
 
-        // Pipeline parameters check and handling
+        // Pipeline parameters check and inject (first run)
         Map envVars = [:]
         Boolean pipelineVariableNotDefined
         env.getEnvironment().each { name, value -> envVars.put(name, value) }
@@ -244,26 +247,24 @@ node(env.JENKINS_NODE) {
             currentBuild.build().getExecutor().interrupt(Result.SUCCESS)
             sleep(time: 3, unit: "SECONDS")
         }
+
+        // Check and handling required pipeline parameters
         Boolean errorsFound = false
-        ArrayList requiredVariablesValueList = [env.IP_LIST,
-                                                env.SSH_LOGIN,
-                                                env.SSH_PASSWORD,
-                                                env.ZABBIX_AGENT_VERSION,
-                                                env.ANSIBLE_GIT_URL,
-                                                env.ANSIBLE_GIT_BRANCH]
-        for (int i = 0; i < requiredVariablesList.size(); i++) {
-            if (!requiredVariablesValueList[i]?.trim()) {
+        requiredVariablesList.each {
+            if (params.containsKey(it) && !env[it.toString()]?.trim()) {
                 errorsFound = true
-                outMsg(3, String.format("%s is undefined for current job run", requiredVariablesList[i]))
+                outMsg(3, String.format("%s is undefined for current job run. Please set then run again.", it))
             }
         }
         if (errorsFound)
-            error 'Missing pipeline parameters.'
+            error 'Missing or incorrect pipeline parameter(s).'
 
         if (!env.SSH_SUDO_PASSWORD?.trim()) {
             outMsg(2, 'SSH_SUDO_PASSWORD wasn\'t set, will be taken from SSH_PASSWORD.')
             env.SSH_SUDO_PASSWORD = env.SSH_PASSWORD
         }
+
+        // Parameters bind and templating playbook and inventory
         Map ansiblePlaybookVariableBinding = [
                 install_v2_agent      : env.INSTALL_AGENT_V2,
                 network_bridge_name   : env.CUSTOMIZE_AGENT,
@@ -306,11 +307,12 @@ node(env.JENKINS_NODE) {
         String ansibleVerbose = (env.DEBUG_MODE.toBoolean()) ? '-vvvv' : ''
         String ansibleRunArgs = String.format('%s %s', ansibleCheckMode, ansibleVerbose)
         wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
-            Boolean ansiblePlaybookStatus = runAnsible(ansiblePlaybookText, ansibleInventoryText, env.ANSIBLE_GIT_URL,
-                    env.ANSIBLE_GIT_BRANCH, AnsibleGitCredentialsId, ansibleRunArgs, AnsibleInstallationName)
-            sh 'sudo rm -f ansible/inventory.ini'
-            if (!ansiblePlaybookStatus)
-                sh 'exit 1'
+            if (!runAnsible(ansiblePlaybookText, ansibleInventoryText, env.ANSIBLE_GIT_URL, env.ANSIBLE_GIT_BRANCH,
+                    AnsibleGitCredentialsId, ansibleRunArgs, AnsibleInstallationName)) {
+                sleep(time: 2, unit: "SECONDS")
+                currentBuild.result = 'FAILURE'
+            }
         }
+
     }
 }
