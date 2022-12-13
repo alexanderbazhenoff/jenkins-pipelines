@@ -1,7 +1,7 @@
 Install Bareos Jenkins pipeline
 -------------------------------------
 
-A jenkins pipeline for installs and configure Bareos and required third-party components, or a wrapper for
+A jenkins pipeline to install and configure Bareos and required third-party components, or a wrapper for
 [alexanderbazhenoff.linux.bareos](https://github.com/alexanderbazhenoff/ansible-collection-linux/tree/main/roles/bareos)
 ansible role.
 
