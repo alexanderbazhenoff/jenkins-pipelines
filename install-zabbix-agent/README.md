@@ -2,8 +2,9 @@ Install zabbix agent Jenkins pipeline
 -------------------------------------
 
 A jenkins pipeline for installing and customizing zabbix agent, or a wrapper for
-[alexanderbazhenoff.linux.zabbix_agent](https://github.com/alexanderbazhenoff/ansible-collection-linux/tree/main/roles/zabbix_agent)
-ansible role.
+[zabbix_agent](https://github.com/alexanderbazhenoff/ansible-collection-linux/tree/main/roles/zabbix_agent)
+ansible role. It gives you an opportunity do directly from Jenkins setting up pipeline parameters, without editing
+ansible playbooks and running them from terminal.
 
 ## Requirements:
 1. Jenkins version 2.190.2 or higher.
@@ -21,6 +22,8 @@ ansible role.
    approval`, find a blocked method (the newest one is usually at the bottom) then click 'Approve'. Or refactor this
    pipeline and move all these methods to 
    [jenkins share library](https://www.jenkins.io/doc/book/pipeline/shared-libraries/).
+8. Internet access on Jenkins node(s) to install alexanderbazhenoff.linux.zabbix_agent from github (or put this to your 
+   local environment and change an URL in pipeline code).
 
 ## Usage:
 1. Create jenkins pipeline with 'Pipeline script from SCM', set-up SCM, Branch Specifier as `*/main` and Script Path as
