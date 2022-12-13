@@ -15,6 +15,7 @@ docker container and archive the latest Alpine Linux docker image with applicati
    approval`, find a blocked method (the newest one is usually at the bottom) then click 'Approve'. Or refactor this
    pipeline and move all these methods to
    [jenkins share library](https://www.jenkins.io/doc/book/pipeline/shared-libraries/).
+6. Internet access on Jenkins node(s) to download docker image and golang project. 
 
 ## Usage:
 1. Create jenkins pipeline with 'Pipeline script from SCM', set-up SCM, Branch Specifier as `*/main` and Script Path as
