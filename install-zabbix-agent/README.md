@@ -22,8 +22,8 @@ ansible playbooks and running them from terminal.
    approval`, find a blocked method (the newest one is usually at the bottom) then click 'Approve'. Or refactor this
    pipeline and move all these methods to 
    [jenkins share library](https://www.jenkins.io/doc/book/pipeline/shared-libraries/).
-8. Internet access on Jenkins node(s) to install alexanderbazhenoff.linux.zabbix_agent from github (or put this to your 
-   local environment and change an URL in pipeline code).
+8. Internet access on Jenkins node(s) to install alexanderbazhenoff.linux.zabbix_agent from GitHub (or put this to your 
+   local environment and change the URL in pipeline code).
 
 ## Usage:
 1. Create jenkins pipeline with 'Pipeline script from SCM', set-up SCM, Branch Specifier as `*/main` and Script Path as
@@ -61,9 +61,9 @@ ansible playbooks and running them from terminal.
   field blank for default Zabbix Servers IPs.
 - **CUSTOM_ACTIVE_SERVERS_IPS**: Custom Zabbix Servers Active IP(s) and port(s), e.g.: A.B.C.D:port. Split this by comma 
   for several IPs. Leave this field blank for default IPs.
-- **ANSIBLE_GIT_URL**: Github or Gitlab URL of ansible project with install_zabbix role to git clone
+- **ANSIBLE_GIT_URL**: GitHub or Gitlab URL of ansible project with install_zabbix role to git clone
   (https://github.com/alexanderbazhenoff/ansible-collection-linux.git).
-- **ANSIBLE_GIT_BRANCH**: Github or Gitlab URL of branch of ansible project with install_zabbix role.
+- **ANSIBLE_GIT_BRANCH**: GitHub or Gitlab URL of branch of ansible project with install_zabbix role.
 - **JENKINS_NODE**: List of possible jenkins nodes to execute.
 - **DEBUG_MODE**: Verbose output of ansible playbooks execution.
 

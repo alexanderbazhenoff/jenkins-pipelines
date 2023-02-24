@@ -79,7 +79,7 @@ ansible playbooks and running them from terminal.
 - **SSH_LOGIN**: Login for SSH connection for install/uninstall components and copy configs (The same for all hosts).
 - **SSH_PASSWORD**: SSH password for install/uninstall components and copy configs (The same for all hosts).
 - **SSH_SUDO_PASSWORD**:SSH sudo password or root password for install/uninstall components and copy configs (The same
-  for all hosts). If this parameter is empy SSH_PASSWORD will be used.
+  for all hosts). If this parameter is empty SSH_PASSWORD will be used.
 - **ACTION**: Action to perform:
   - **install_and_add_client**: install and add file daemon;
   - **access**: create user profile to access Bareos Web UI;
