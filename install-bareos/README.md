@@ -91,11 +91,14 @@ ansible playbooks and running them from terminal.
 - **BAREOS_COMPONENTS**: Bareos components to install or uninstall: **fd** - file daemon, **sd** - storage daemon, 
   **dir** - director, **webui** - Web UI, **dir_webui** - director and Web UI.
 - **BAREOS_RELEASE**: Bareos version.
+- **OVERRIDE_LINUX_DISTRO_VERSION**: Override ansible linux distribution major version. Useful when specified Bareos
+version repo is not available for your Linux distribution version (example: Bareos v21 currently is 
+[not available](https://download.bareos.org/bareos/release/21/) for any RedHat v9, so try to set `8` here).
 
 ### Bareos file daemon and Bareos server parameters.
 - **FILE_DAEMON_NAME**: Name of file daemon to display on Bareos server on file daemon add (leave '' for FQDN or
   hostname).
-- **FILE_DAEMON_PASSWORD**: Password to connect file daemon with (leave '' to generate random password).
+- **FILE_DAEMON_PASSWORD**: Password to connect file daemon with (leave unspecified to generate random password).
 - **USE_PIPELINE_CONSTANTS_FOR_BAREOS_SERVER_ACCESS**: Use pipleine constants for Bareos Server SSH access for file
   daemon add and Web UI access control, otherwise set BAREOS_SERVER, BAREOS_SERVER_SSH_LOGIN and
   BAREOS_SERVER_SSH_PASSWORD (login and become are the same).

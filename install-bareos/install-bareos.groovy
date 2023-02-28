@@ -15,7 +15,7 @@
  * MIT No Attribution (MIT-0)
  * LICENSE
  *
- * Copyright 2022, Alexander Bazhenov.
+ * Copyright 2022-2023, Alexander Bazhenov.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
@@ -131,6 +131,7 @@ def AnsibleDefaultPlaybookTemplate = '''\
         role_action: $ACTION
         bareos_components: $BAREOS_COMPONENTS
         bareos_release: $BAREOS_RELEASE
+        override_ansible_distribution_major_version: $OVERRIDE_LINUX_DISTRO_VERSION
         $add_component_name_parameter_line
         $add_component_password_parameter_line
         add_component_server: $add_component_server
@@ -221,6 +222,7 @@ node(env.JENKINS_NODE) {
         ArrayList otherVariablesList = ['SSH_SUDO_PASSWORD',
                                         'ANSIBLE_GIT_BRANCH',
                                         'BAREOS_RELEASE',
+                                        'OVERRIDE_LINUX_DISTRO_VERSION',
                                         'DEBUG_MODE']
         otherVariablesList += (ActionsEnabled.install_and_add_client.state || ActionsEnabled.add_client.state) ? [
                 'FILE_DAEMON_NAME',
@@ -300,7 +302,11 @@ node(env.JENKINS_NODE) {
                             choices: bareosComponentsChoices),
                     choice(name: 'BAREOS_RELEASE',
                             description: 'Bareos version.<br><br><br><br>',
-                            choices: ListOfBareosReleases)
+                            choices: ListOfBareosReleases),
+                    string(name: 'OVERRIDE_LINUX_DISTRO_VERSION',
+                            description: 'Override ansible distribution major version when there\'s no Bareos repo',
+                            defaultValue: '',
+                            trim: false)
 
             ] + ((ActionsEnabled.install_and_add_client.state || ActionsEnabled.add_client.state) ? [
                     string(name: 'FILE_DAEMON_NAME',
