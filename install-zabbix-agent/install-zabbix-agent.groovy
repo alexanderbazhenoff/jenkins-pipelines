@@ -40,12 +40,16 @@ import groovy.text.StreamingTemplateEngine
 import hudson.model.Result
 
 
-// Pipeline parameters defaults
+// Repo URL of 'alexanderbazhenoff.linux' ansible collection repo
 def AnsibleGitRepoUrl = 'https://github.com/alexanderbazhenoff/ansible-collection-linux.git' as String
+// Repo branch
 def AnsibleGitDefaultBranch = 'main' as String
-def AnsibleGitCredentialsId = '' as String                           // If you wish to clone from non-public repo
-def AnsibleInstallationName = 'home_local_bin_ansible' as String     // Set your ansible installation name
+def AnsibleGitCredentialsId = '' as String
+// If you wish to clone from non-public repo, or use ssh cloning. E.g: 'a222b01a-230b-1234-1a12345678b9'
+def AnsibleInstallationName = 'home_local_bin_ansible' as String
+// Set your ansible installation name from jenkins settings
 def NodesToExecute = ['domain.com'] as ArrayList
+// List of Zabbix version to select in ZABBIX_AGENT_VERSION pipeline parameter
 def ZabbixAgentVersions = ['5.0', '4.0'] as ArrayList
 
 
@@ -58,7 +62,7 @@ def AnsibleDefaultPlaybookTemplate = '''\
   tasks:
     - name: Include zabbix_agent role
       ansible.builtin.include_role:
-        name: emzior.services.zabbix_agent
+        name: alexanderbazhenoff.linux.zabbix_agent
       vars:
         agent_version: $agent_version
         install_v2_agent: $install_v2_agent
