@@ -10,10 +10,11 @@
  * - AnsiColor Jenkins plugin: https://plugins.jenkins.io/ansicolor/
  * - Ansible Jenkins plugin: https://plugins.jenkins.io/ansible/
  *
- * This Source Code Form is subject to the terms of the GNU LESSER GENERAL PUBLIC LICENSE v2.1 License.
+ * This Source Code Form is subject to the terms of the Apache License Version 2.0.
  * If a copy of this source file was not distributed with this file, You can obtain one at:
  * https://github.com/alexanderbazhenoff/jenkins-shared-library/blob/main/LICENSE
  */
+
 
 import org.codehaus.groovy.runtime.StackTraceUtils
 import groovy.text.StreamingTemplateEngine
