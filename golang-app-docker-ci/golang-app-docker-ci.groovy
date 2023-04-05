@@ -8,7 +8,7 @@
  * Requires jenkins version 2.249.2 or higher and Cloudbees Docker Workflow plugin installed on jenkins master node:
  * https://docs.cloudbees.com/docs/admin-resources/latest/plugins/docker-workflow
  *
- * This Source Code Form is subject to the terms of the GNU LESSER GENERAL PUBLIC LICENSE v2.1 License.
+ * This Source Code Form is subject to the terms of the Apache License Version 2.0.
  * If a copy of this source file was not distributed with this file, You can obtain one at:
  * https://github.com/alexanderbazhenoff/jenkins-shared-library/blob/main/LICENSE
  */
