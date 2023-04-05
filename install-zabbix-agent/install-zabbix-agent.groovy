@@ -21,24 +21,25 @@ import groovy.text.StreamingTemplateEngine
 import hudson.model.Result
 
 
-// Repo URL of 'alexanderbazhenoff.linux' ansible collection repo
+// Repo URL of 'alexanderbazhenoff.linux' ansible collection repo.
 def AnsibleGitRepoUrl = 'https://github.com/alexanderbazhenoff/ansible-collection-linux.git' as String
 
-// Repo branch
+// Repo branch.
 def AnsibleGitDefaultBranch = 'main' as String
+// If you wish to clone from non-public repo, or use ssh cloning. E.g: 'a222b01a-230b-1234-1a12345678b9'.
 def AnsibleGitCredentialsId = '' as String
 
-// If you wish to clone from non-public repo, or use ssh cloning. E.g: 'a222b01a-230b-1234-1a12345678b9'
+// Set your ansible installation name from jenkins settings.
 def AnsibleInstallationName = 'home_local_bin_ansible' as String
 
-// Set your ansible installation name from jenkins settings
+// Set your ansible installation name from jenkins settings.
 def NodesToExecute = ['domain.com'] as ArrayList
 
-// List of Zabbix version to select in ZABBIX_AGENT_VERSION pipeline parameter
+// List of Zabbix version to select in ZABBIX_AGENT_VERSION pipeline parameter.
 def ZabbixAgentVersions = ['5.0', '4.0'] as ArrayList
 
 
-// Playbook template, inventory files and ansible repo path
+// Playbook template, inventory files and ansible repo path.
 def AnsibleDefaultPlaybookTemplate = '''\
 ---
 - hosts: all
@@ -56,12 +57,15 @@ def AnsibleDefaultPlaybookTemplate = '''\
         clean_install: $clean_install
         force_install_agent_v1: $force_install_agent_v1       
 ''' as String
+
 def AnsibleServersPassivePlaybookTemplate = '''\
   zabbix_servers_passive: $servers_passive
 ''' as String
+
 def AnsibleServersActivePlaybookTemplate = '''\
   zabbix_servers_passive: $servers_active
 ''' as String
+
 def AnsibleInventoryTemplate = '''\
 [all]
 $hosts_list
@@ -157,7 +161,7 @@ node(env.JENKINS_NODE) {
 
         // Pipeline parameters check and inject (first run)
         Map envVars = [:]
-        Boolean pipelineVariableNotDefined
+        Boolean pipelineVariableNotDefined = false
         env.getEnvironment().each { name, value -> envVars.put(name, value) }
         ArrayList requiredVariablesList = ['IP_LIST',
                                            'SSH_LOGIN',
@@ -175,8 +179,7 @@ node(env.JENKINS_NODE) {
                                         'JENKINS_NODE',
                                         'DEBUG_MODE']
         (requiredVariablesList + otherVariablesList).each {
-            if (!envVars.containsKey(it))
-                pipelineVariableNotDefined = true
+            pipelineVariableNotDefined = (!envVars.containsKey(it)) ? true : pipelineVariableNotDefined
         }
         if (pipelineVariableNotDefined) {
             properties([
@@ -302,10 +305,8 @@ node(env.JENKINS_NODE) {
         String ansibleRunArgs = String.format('%s %s', ansibleCheckMode, ansibleVerbose)
         wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
             if (!runAnsible(ansiblePlaybookText, ansibleInventoryText, env.ANSIBLE_GIT_URL, env.ANSIBLE_GIT_BRANCH,
-                    AnsibleGitCredentialsId, ansibleRunArgs, AnsibleInstallationName)) {
-                sleep(time: 2, unit: "SECONDS")
-                currentBuild.result = 'FAILURE'
-            }
+                    AnsibleGitCredentialsId, ansibleRunArgs, AnsibleInstallationName))
+                error 'Ansible playbook execution failed.'
         }
 
     }
