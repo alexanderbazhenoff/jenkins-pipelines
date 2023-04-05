@@ -13,20 +13,25 @@
 
 // Start jenkins node where git clone (and optional all required keys for ssh cloning)
 def StartNode = 'master' as String
+
 // Jenkins node with isc-dhcp-server to execute on
 def ExecutionNode = 'dhcpd-server.domain' as String
+
 // Repo URL of 'get_dhcpd_leases.py' script, e.g: 'git@github.com:alexanderbazhenoff/various-scripts.git'
 def GitProjectUrlOfTheScript = 'https://github.com/alexanderbazhenoff/various-scripts.git' as String
+
 // Full path inside the repo to run 'get_dhcpd_leases.py' script
 def ScriptPathInsideTheRepo = 'network/get_dhcpd_leases/get_dhcpd_leases.py' as String
+
 // Repo branch
 def GitScriptBranch = 'master' as String
+
 // Credentials to access repo (for ssh cloning), e.g. 'a222b01a-230b-1234-1a12345678b9'
 def GitCredentials = '' as String
 
 
 node(StartNode) {
-    git(branch: GitScriptBranch, credentialsId: GitCredentials, url: GitProjectUrlOfTheScript)
+    git branch: GitScriptBranch, credentialsId: GitCredentials, url: GitProjectUrlOfTheScript
     stash name: 'script', includes: ScriptPathInsideTheRepo
     node(ExecutionNode) {
         unstash 'script'

@@ -25,7 +25,7 @@ def DefaultGitProjectPath = 'example/outyet' as String
 def DefaultPostTestShellCommand = 'curl http://127.0.0.1:80' as String
 
 
-// Dockefiles templates
+// Dockerfiles templates
 def DockerFileHeadText = '''\
 FROM alpine:latest
 EXPOSE 80:8080
@@ -100,7 +100,9 @@ node(env.JENKINS_NODE) {
         } else {
             appBinaryName = env.GIT_URL.substring(env.GIT_URL.lastIndexOf('/') + 1).replace('.git', '')
         }
-        dir('test-image') { writeFile file: 'Dockerfile', text: String.format(DockerFileTestText, DockerFileHeadText) }
+        dir('test-image') {
+            writeFile file: 'Dockerfile', text: String.format(DockerFileTestText, DockerFileHeadText)
+        }
         println String.format("%s\nBuilding test container...", ("-" * 90))
         def testImage = docker.build(String.format("test-image:%s", env.BUILD_ID), String.format("%s/test-image",
                 env.WORKSPACE))

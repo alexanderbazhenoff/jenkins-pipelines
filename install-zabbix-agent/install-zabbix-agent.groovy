@@ -23,13 +23,17 @@ import hudson.model.Result
 
 // Repo URL of 'alexanderbazhenoff.linux' ansible collection repo
 def AnsibleGitRepoUrl = 'https://github.com/alexanderbazhenoff/ansible-collection-linux.git' as String
+
 // Repo branch
 def AnsibleGitDefaultBranch = 'main' as String
 def AnsibleGitCredentialsId = '' as String
+
 // If you wish to clone from non-public repo, or use ssh cloning. E.g: 'a222b01a-230b-1234-1a12345678b9'
 def AnsibleInstallationName = 'home_local_bin_ansible' as String
+
 // Set your ansible installation name from jenkins settings
 def NodesToExecute = ['domain.com'] as ArrayList
+
 // List of Zabbix version to select in ZABBIX_AGENT_VERSION pipeline parameter
 def ZabbixAgentVersions = ['5.0', '4.0'] as ArrayList
 
@@ -74,8 +78,7 @@ ansible_become_pass=$ssh_become_password
 /**
  * More readable exceptions with line numbers.
  *
- * @param error - Exception error
- * @return
+ * @param error - Exception error.
  */
 static String readableError(Throwable error) {
     return String.format('Line %s: %s', error.stackTrace.head().lineNumber, StackTraceUtils.sanitize(error))
@@ -84,29 +87,29 @@ static String readableError(Throwable error) {
 /**
  * Print event-type and message.
  *
- * @param eventnum - event type: debug, info, etc...
+ * @param eventNum - event type: debug, info, etc...
  * @param text - text to output
  */
-def outMsg(Integer eventnum, String text) {
+def outMsg(Integer eventNum, String text) {
     wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
         List eventTypes = [
                 '\033[0;34mDEBUG\033[0m',
                 '\033[0;32mINFO\033[0m',
                 '\033[0;33mWARNING\033[0m',
                 '\033[0;31mERROR\033[0m']
-        println String.format('%s | %s | %s', env.JOB_NAME, eventTypes[eventnum], text)
+        println String.format('%s | %s | %s', env.JOB_NAME, eventTypes[eventNum], text)
     }
 }
 
 /**
- * Run ansible role/plabook with (optional) ansible-galaxy collections install.
+ * Run ansible role/playbook with (optional) ansible-galaxy collections install.
  *
- * @param ansiblePlaybookText - text content of ansible playbook/role
- * @param ansibleInventoryText - text content of ansible inventory file
- * @param ansibleGitlabUrl - git URL of ansible project to clone and run
- * @param ansibleGitlabBranch - git branch of ansible project
- * @param gitCredentialsID - git credentials ID
- * @param ansibleExtras - (optional) extra params for playbook running
+ * @param ansiblePlaybookText - text content of ansible playbook/role.
+ * @param ansibleInventoryText - text content of ansible inventory file.
+ * @param ansibleGitlabUrl - git URL of ansible project to clone and run.
+ * @param ansibleGitlabBranch - git branch of ansible project.
+ * @param gitCredentialsID - git credentials ID.
+ * @param ansibleExtras - (optional) extra params for playbook running.
  * @param ansibleCollections - (optional) list of ansible-galaxy collections dependencies which will be installed before
  *                             running the script. Collections should be placed in ansible gitlab project according to
  *                             ansible-galaxy directory layout standards. If variable wasn't pass (empty) the roles
@@ -123,9 +126,7 @@ Boolean runAnsible(String ansiblePlaybookText, String ansibleInventoryText, Stri
     try {
         dir('ansible') {
             sh 'sudo rm -rf *'
-            git(branch: ansibleGitlabBranch,
-                    credentialsId: gitCredentialsID,
-                    url: ansibleGitlabUrl)
+            git branch: ansibleGitlabBranch, credentialsId: gitCredentialsID, url: ansibleGitlabUrl
             if (sh(returnStdout: true, returnStatus: true, script: '''ansible-galaxy collection build 
                         ansible-galaxy collection install $(ls -1 | grep ".tar.gz") -f''') != 0) {
                 outMsg(3, 'There was an error building and installing ansible collection.')

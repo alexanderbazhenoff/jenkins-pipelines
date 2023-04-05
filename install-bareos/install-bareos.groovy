@@ -23,7 +23,8 @@ import groovy.text.StreamingTemplateEngine
 import org.codehaus.groovy.runtime.StackTraceUtils
 
 
-/** Pipeline constants to enable or disable features.
+/**
+ *  Pipeline constants to enable or disable features.
  */
 // Due to security reasons you can enable or disable various actions, Bareos components and/or copy config(s) params:
 def ActionsEnabled = [install_and_add_client: [state      : true,
@@ -58,50 +59,67 @@ def BareosCopyConfigsParams = [
         dir_webui   : [source: '/configs', destination: '/etc', owner: 'bareos', group: 'bareos'],
         copy_configs: [source: '/configs', destination: '/etc', owner: 'bareos', group: 'bareos']
 ] as LinkedHashMap
+
 // Git credentials ID to clone ansible (e.g. a222b01a-230b-1234-1a12345678b9):
 def GitCredentialsId = '' as String
 
-/** Default pipeline parameters
+/**
+ *  Default pipeline parameters
  */
 // List of Bareos versions selection for pipeline parameters injection (first run):
 def ListOfBareosReleases = [21] as ArrayList
+
 // List of PostgreSQL versions selection for pipeline parameters injection (first run):
 def ListOfPostgreSqlVersions = [14] as ArrayList
+
 // List of additional Bareos packages to install for pipeline parameters injection (first run):
 def InstallAdditionalBareosPackagesDefaults = 'bareos-traymonitor' as String
+
 // Default ansible project git branch for pipeline parameters injection (first run):
 def DefaultAsnibleGitBranch = 'master' as String
+
 // Default Bareos configs git URL for pipeline parameters injection (first run):
 def DefaultBareosConfigsUrl = '' as String
+
 // Default Bareos configs git branch for pipeline parameters injection (first run). Typically this is main/master, but
-// empty by default to prevent copying on file deamon install:
+// empty by default to prevent copying on file daemon install:
 def DefaultBareosConfigsBranch = '' as String
+
 // Folder inside of bareos configs git project to copy from:
 def BareosConfigsSouthRelativePath = '/bareos' as String
+
 // ssh private key filename to access Bareos server, which should be uploaded to $HOME/.ssh and added to Bareos server:
 def SshPrivateKeyFilename = 'id_rsa_bareos' as String
+
 // Bareos server IP or DNS when USE_PIPELINE_CONSTANTS_FOR_BAREOS_SERVER_ACCESS set:
 def BareosServerHost = 'bareos.domain' as String
+
 // Bareos server ssh user when USE_PIPELINE_CONSTANTS_FOR_BAREOS_SERVER_ACCESS set:
 def BareosServerSshLogin = 'username' as String
+
 // Bareos ssh password when USE_PIPELINE_CONSTANTS_FOR_BAREOS_SERVER_ACCESS and USE_SSH_KEY_TO_CONNECT_BAREOS_SERVER
 // was set. Actually it's almost useless, because of using ssh key is easier:
 def BareosServerSshPassword = '' as String
 
-/** Other pipeline parameters, playbook template parts, inventory files, ansible repo path, etc.
+/**
+ *  Other pipeline parameters, playbook template parts, inventory files, ansible repo path, etc.
  */
 // Set Git URL, or leave them empty to install collection(s) defined in AnsibleCollectionsNames from ansible galaxy:
 def AnsibleGitRepoUrl = 'https://github.com/alexanderbazhenoff/ansible-collection-linux.git' as String
 def AnsibleCollectionName = 'alexanderbazhenoff.linux' as String
+
 // Force install ansible galaxy evry single pipeline run, otherwise will not install newer version. In most cases
 // it's true. See this thread: https://github.com/ansible/ansible/issues/65699
 // So if you wish to freez an old version, e.g. if a lot of changes in new version of ansible collection.
 def ForceInstallAnsibleCollection = true as Boolean
+
 // Set your ansible installation name from jenkins settings:
 def AnsibleInstallationName = 'home_local_bin_ansible' as String
+
 // List of nodes to execute ansible:
 def NodesToExecute = ['node-name.domain'] as ArrayList
 
+// Ansible playbook template to execute on pipeline run. Variables inside will be templated from pipeline params.
 def AnsibleDefaultPlaybookTemplate = '''\
 ---
 
@@ -137,6 +155,7 @@ def AnsibleDefaultPlaybookTemplate = '''\
       when: $ansible_hosts_condition
 ''' as String
 
+// Ansible inventory templates and it's parts with different connection options.
 def AnsibleInventoryTemplate = '''\
 [$ansible_hosts_group]
 $ansible_group_hosts
@@ -147,14 +166,14 @@ ansible_ssh_common_args='-o StrictHostKeyChecking=no'
 # ansible connection $ansible_hosts_group options
 ''' as String
 
-def AnsibleInvenotryPasswordConnectionOptions = '''\
+def AnsibleInventoryPasswordConnectionOptions = '''\
 ansible_become_user=root
 ansible_ssh_user=$ansible_user
 ansible_ssh_pass=$ansible_password
 ansible_become_pass=$ansible_become_password
 ''' as String
 
-def AnsibleInvenotrySshKeyConnectionOptions = '''\
+def AnsibleInventorySshKeyConnectionOptions = '''\
 ansible_user=$ansible_user
 ansible_ssh_private_key_file=$home_folder/.ssh/$private_ssh_key_file_name
 ''' as String
@@ -185,17 +204,17 @@ static makeListOfEnabledOptions(Map optionsMap, String formatTemplate = '%s - %s
 /**
  * Print event-type and message.
  *
- * @param eventnum - event type: debug, info, etc...
+ * @param eventNum - event type: debug, info, etc...
  * @param text - text to output
  */
-def outMsg(Integer eventnum, String text) {
+def outMsg(Integer eventNum, String text) {
     wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
         List eventTypes = [
                 '\033[0;34mDEBUG\033[0m',
                 '\033[0;32mINFO\033[0m',
                 '\033[0;33mWARNING\033[0m',
                 '\033[0;31mERROR\033[0m']
-        println String.format('%s | %s | %s', env.JOB_NAME, eventTypes[eventnum], text)
+        println String.format('%s | %s | %s', env.JOB_NAME, eventTypes[eventNum], text)
     }
 }
 
@@ -204,7 +223,7 @@ node(env.JENKINS_NODE) {
     wrap([$class: 'TimestamperBuildWrapper']) {
 
         // Pipeline parameters check
-        Boolean pipelineVariableNotDefined
+        Boolean pipelineVariableNotDefined = false
         ArrayList requiredVariablesList = ['ACTION',
                                            'BAREOS_COMPONENTS',
                                            'ANSIBLE_GIT_BRANCH',
@@ -246,8 +265,7 @@ node(env.JENKINS_NODE) {
                 'CONFIGS_GIT_BRANCH'
         ] : []
         (requiredVariablesList + otherVariablesList).each {
-            if (!params.containsKey(it))
-                pipelineVariableNotDefined = true
+            pipelineVariableNotDefined = (!params.containsKey(it)) ? true : pipelineVariableNotDefined
         }
 
         // Update pipeline parameters
@@ -415,12 +433,14 @@ node(env.JENKINS_NODE) {
                 outMsg(3, String.format("%s is undefined for current job run. Please set then run again.", it))
             }
         }
-        errorsFound = ((ActionsEnabled.get(env.ACTION) && !ActionsEnabled[env.ACTION].state) ||
+
+        errorsFound = ((ActionsEnabled.get(env.ACTION) && !ActionsEnabled[env.ACTION as String].state) ||
                 (BareosComponentsEnabled.get(env.BAREOS_COMPONENTS) &&
-                        !BareosComponentsEnabled[env.BAREOS_COMPONENTS].state)) ? true : errorsFound
+                        !BareosComponentsEnabled[env.BAREOS_COMPONENTS as String].state)) ? true : errorsFound
         errorsFound = (env.WEBUI_PROFILE?.trim() && env.ACTION == 'access') &&
                 (!WebUiProfilesEnabled.get(env.WEBUI_PROFILE) ||
-                        !WebUiProfilesEnabled[env.WEBUI_PROFILE].state) ? true : errorsFound
+                        !WebUiProfilesEnabled[env.WEBUI_PROFILE as String].state) ? true : errorsFound
+
         if (env.ACTION =~ 'add_client' && env.BAREOS_COMPONENTS != 'fd')
             outMsg(2, 'Only file daemon add to server supported in this ansible role. File daemon will be added.')
         if (!env.ACTION.matches('.*access$') && !env.SSH_SUDO_PASSWORD?.trim()) {
@@ -467,6 +487,7 @@ node(env.JENKINS_NODE) {
         ArrayList ansibleActions = (env.ACTION == 'install_and_add_client') ? ['install', 'add_client'] :
                 env.ACTION.split().toList()
         ansibleActions.each {
+
             // Parsing template parameters bind
             String ansibleInventoryFirstPart = ''
             LinkedHashMap modifiableParams = params + [
@@ -486,7 +507,7 @@ node(env.JENKINS_NODE) {
                     String.format('add_component_name: %s', env.FILE_DAEMON_NAME) : '']
             modifiableParams += [add_component_password_parameter_line: env.FILE_DAEMON_PASSWORD.trim() ?
                     String.format('add_component_password: %s', env.FILE_DAEMON_PASSWORD) : '']
-            String ansibleInventoryOptions = AnsibleInventoryTemplate + AnsibleInvenotryPasswordConnectionOptions
+            String ansibleInventoryOptions = AnsibleInventoryTemplate + AnsibleInventoryPasswordConnectionOptions
 
             if (modifiableParams.ACTION.matches('.*(access|add_client)$')) {
                 if (modifiableParams.ACTION == 'add_client') {
@@ -513,8 +534,8 @@ node(env.JENKINS_NODE) {
                         ansible_become_password: env.BAREOS_SERVER_SSH_PASSWORD
                 ])
                 ansibleInventoryOptions = AnsibleInventoryTemplate + (env.USE_SSH_KEY_TO_CONNECT_BAREOS_SERVER
-                        .toBoolean() ? AnsibleInvenotrySshKeyConnectionOptions :
-                        AnsibleInvenotryPasswordConnectionOptions)
+                        .toBoolean() ? AnsibleInventorySshKeyConnectionOptions :
+                        AnsibleInventoryPasswordConnectionOptions)
             }
 
             // Copy Bareos configs
