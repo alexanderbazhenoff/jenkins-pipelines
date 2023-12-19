@@ -141,7 +141,7 @@ node(env.JENKINS_NODE) {
             writeFile file: 'Dockerfile', text: prodImageDockerfileText
         }
         println String.format('%s\nBuilding app container...', ('-' * 90))
-        def prodImage = docker.build(String.format('prod-image:%s', env.BUILD_ID),
+        Object prodImage = docker.build(String.format('prod-image:%s', env.BUILD_ID),
                 String.format('%s/prod-image', env.WORKSPACE))
 
         // Run post-test command to ensure app working and archive artifacts

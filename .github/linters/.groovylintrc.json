@@ -39,6 +39,9 @@
     "convention.CompileStatic": {
       "enabled": false
     },
+    "BlockStartsWithBlankLine": {
+      "enabled": false
+    },
     "UnnecessaryReturnKeyword": "error"
   }
 }
