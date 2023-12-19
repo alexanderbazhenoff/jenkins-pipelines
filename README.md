@@ -1,6 +1,6 @@
 # Various jenkins scripted pipelines
 
-![CI](https://github.com/alexanderbazhenoff/ansible-development-template/actions/workflows/lint.yml/badge.svg?branch=main)
+![Lint](https://github.com/alexanderbazhenoff/jenkins-pipelines/actions/workflows/lint.yml/badge.svg?branch=main)
 
 
 - [**get-dhcpd-leases**](get-dhcpd-leases/README.md) - A tiny wrapper for

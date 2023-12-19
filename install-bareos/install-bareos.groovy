@@ -198,7 +198,7 @@ static makeListOfEnabledOptions(Map optionsMap, String formatTemplate = '%s - %s
                 descriptions.add(String.format(formatTemplate, it.key, it.value.description))
         }
     }
-    return [options, descriptions]
+    [options, descriptions]
 }
 
 /**

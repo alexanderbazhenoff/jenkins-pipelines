@@ -22,22 +22,22 @@ import hudson.model.Result
 
 
 // Repo URL of 'alexanderbazhenoff.linux' ansible collection repo.
-def AnsibleGitRepoUrl = 'https://github.com/alexanderbazhenoff/ansible-collection-linux.git' as String
+final String AnsibleGitRepoUrl = 'https://github.com/alexanderbazhenoff/ansible-collection-linux.git'
 
 // Repo branch.
-def AnsibleGitDefaultBranch = 'main' as String
+final String AnsibleGitDefaultBranch = 'main'
 // If you wish to clone from non-public repo, or use ssh cloning. E.g: 'a222b01a-230b-1234-1a12345678b9'.
-def AnsibleGitCredentialsId = '' as String
+final String AnsibleGitCredentialsId = ''
 
 // Set your ansible installation name from jenkins settings.
-def NodesToExecute = ['domain.com'] as ArrayList
+final ArrayList NodesToExecute = ['domain.com']
 
 // List of Zabbix version to select in ZABBIX_AGENT_RELEASE pipeline parameter.
-def ZabbixAgentVersions = ['5.0', '5,5', '6.0', '4.0'] as ArrayList
+final ArrayList ZabbixAgentVersions = ['5.0', '5,5', '6.0', '4.0']
 
 
 // Playbook template, inventory files and ansible repo path.
-def AnsibleDefaultPlaybookTemplate = '''\
+final String AnsibleDefaultPlaybookTemplate = '''\
 ---
 - hosts: all
   become: true
@@ -53,17 +53,17 @@ def AnsibleDefaultPlaybookTemplate = '''\
         customize_agent_only: $customize_agent_only
         clean_install: $clean_install
         force_install_agent_v1: $force_install_agent_v1
-''' as String
+'''
 
-def AnsibleServersPassivePlaybookTemplate = '''\
+final String AnsibleServersPassivePlaybookTemplate = '''\
   zabbix_servers_passive: $servers_passive
-''' as String
+'''
 
-def AnsibleServersActivePlaybookTemplate = '''\
+final String AnsibleServersActivePlaybookTemplate = '''\
   zabbix_servers_passive: $servers_active
-''' as String
+'''
 
-def AnsibleInventoryTemplate = '''\
+final String AnsibleInventoryTemplate = '''\
 [all]
 $hosts_list
 [all:vars]
@@ -73,7 +73,7 @@ ansible_ssh_common_args='-o StrictHostKeyChecking=no\'
 ansible_ssh_user=$ssh_user
 ansible_ssh_pass=$ssh_password
 ansible_become_pass=$ssh_become_password
-''' as String
+'''
 
 
 /**

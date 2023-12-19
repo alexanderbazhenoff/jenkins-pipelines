@@ -24,7 +24,9 @@
     "size.NestedBlockDepth": {
       "maxNestedBlockDepth": 10
     },
-    "naming.VariableName": "off",
+    "naming.VariableName": {
+      "enabled": false
+    },
     "UnnecessaryReturnKeyword": "error"
   }
 }
