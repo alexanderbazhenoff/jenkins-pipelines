@@ -39,6 +39,6 @@
     "convention.CompileStatic": {
       "enabled": false
     },
-    "UnnecessaryReturnKeyword",: "error"
+    "UnnecessaryReturnKeyword": "error"
   }
 }
