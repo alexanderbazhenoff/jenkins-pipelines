@@ -33,10 +33,12 @@ ansible playbooks and running them from terminal.
 4. Specify defaults for jenkins pipeline parameters in a global variables of pipeline code:
     - **AnsibleInstallationName** is named path of your ansible installation from:
       `Jenkins -> Configure Jenkins -> Golbal Tool Configuration -> Ansible`, e.g:
-      ```
+
+      ```text
       Name: home_local_bin_ansible
       Path to ansible executables directory: $HOME/.local/bin/
       ```
+
       for your pip installation under user. Or check your installation path with `ansible --version` command.
       (Please take a notice global pipeline variables means a constants in a pipeline code, not in shared library or
       other global Jenkins settings.)

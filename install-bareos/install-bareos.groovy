@@ -224,15 +224,15 @@ node(env.JENKINS_NODE) {
 
         // Pipeline parameters check
         Boolean pipelineVariableNotDefined = false
-        ArrayList requiredVariablesList = ['ACTION',
-                                           'BAREOS_COMPONENTS',
-                                           'ANSIBLE_GIT_BRANCH',
-                                           'JENKINS_NODE']
-        ArrayList otherVariablesList = ['SSH_SUDO_PASSWORD',
-                                        'ANSIBLE_GIT_BRANCH',
-                                        'BAREOS_RELEASE',
-                                        'OVERRIDE_LINUX_DISTRO_VERSION',
-                                        'DEBUG_MODE']
+        List requiredVariablesList = ['ACTION',
+                                      'BAREOS_COMPONENTS',
+                                      'ANSIBLE_GIT_BRANCH',
+                                      'JENKINS_NODE']
+        List otherVariablesList = ['SSH_SUDO_PASSWORD',
+                                   'ANSIBLE_GIT_BRANCH',
+                                   'BAREOS_RELEASE',
+                                   'OVERRIDE_LINUX_DISTRO_VERSION',
+                                   'DEBUG_MODE']
         otherVariablesList += (ActionsEnabled.install_and_add_client.state || ActionsEnabled.add_client.state) ? [
                 'FILE_DAEMON_NAME',
                 'BAREOS_SERVER_SSH_PASSWORD',
@@ -277,7 +277,7 @@ node(env.JENKINS_NODE) {
                     BareosComponentsEnabled, '<b>%s</b> - %s') as ArrayList
             def (List webuiProfilesChoices, List __) = makeListOfEnabledOptions(WebUiProfilesEnabled) as ArrayList
 
-            ArrayList pipelineParams = [
+            List pipelineParams = [
                     string(name: 'IP_LIST',
                             description:
                                     'Space separated IP or DNS list for install/uninstall components and copy configs.',
@@ -460,12 +460,11 @@ node(env.JENKINS_NODE) {
         currentBuild.displayName = String.format('%s__%s--#%s', env.ACTION, bareosActionSubject, env.BUILD_NUMBER)
 
         // Cleanup ssh keys, install ansible collection
-        ArrayList hostsToClean = env.IP_LIST.trim().split(' ').toList() + ((params.containsKey(BAREOS_SERVER) &&
+        List hostsToClean = env.IP_LIST.trim().split(' ').toList() + ((params.containsKey(BAREOS_SERVER) &&
                 !env.USE_SSH_KEY_TO_CONNECT_BAREOS_SERVER.toBoolean()) ? [env.BAREOS_SERVER] : [])
         hostsToClean.findAll { it }.each {
-            ArrayList itemsToClean = (it.matches('^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$')) ? [it] :
-                    [it] + [sh(script: String.format('getent hosts %s | cut -d\' \' -f1', it), returnStdout: true)
-                                    .toString()]
+            List itemsToClean = (it.matches('^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$')) ? [it] : [it] +
+                    [sh(script: String.format('getent hosts %s | cut -d\' \' -f1', it), returnStdout: true).toString()]
             itemsToClean.each { host ->
                 if (host?.trim()) sh String.format('ssh-keygen -f "${HOME}/.ssh/known_hosts" -R %s', host)
             }
@@ -484,8 +483,8 @@ node(env.JENKINS_NODE) {
             }
         }
 
-        ArrayList ansibleActions = (env.ACTION == 'install_and_add_client') ? ['install', 'add_client'] :
-                env.ACTION.split().toList()
+        List ansibleActions = (env.ACTION == 'install_and_add_client') ? ['install', 'add_client'] : env.ACTION.split()
+                .toList()
         ansibleActions.each {
 
             // Parsing template parameters bind
@@ -564,7 +563,7 @@ node(env.JENKINS_NODE) {
             // Templating playbook and inventory, run ansible
             String ansibleInventoryText = new StreamingTemplateEngine()
                     .createTemplate(ansibleInventoryFirstPart + ansibleInventoryOptions).make(modifiableParams)
-            ArrayList playbookVariablesMention = AnsibleDefaultPlaybookTemplate.findAll('\\$[0-9a-zA-Z_]+').collect {
+            List playbookVariablesMention = AnsibleDefaultPlaybookTemplate.findAll('\\$[0-9a-zA-Z_]+').collect {
                 it.replace('$', '')
             }
             Map ansibleVariablesBinding = playbookVariablesMention.collectEntries { [it, ''] } + modifiableParams
@@ -586,7 +585,7 @@ node(env.JENKINS_NODE) {
                 } catch (Exception error) {
                     outMsg(3, String.format('Running ansible failed: %s', String.format('Line %s: %s',
                             error.stackTrace.head().lineNumber, StackTraceUtils.sanitize(error))))
-                    sleep(time: 2, unit: "SECONDS")
+                    sleep(time: 2, unit: 'SECONDS')
                     currentBuild.result = 'FAILURE'
                 }
             }

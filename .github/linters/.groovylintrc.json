@@ -36,6 +36,9 @@
     "CatchException": {
       "enabled": false
     },
-    "UnnecessaryReturnKeyword": "error"
+    "convention.CompileStatic": {
+      "enabled": false
+    },
+    "UnnecessaryReturnKeyword",: "error"
   }
 }

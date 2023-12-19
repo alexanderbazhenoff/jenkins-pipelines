@@ -143,7 +143,7 @@ Boolean runAnsible(String ansiblePlaybookText, String ansibleInventoryText, Stri
     } finally {
         sh 'sudo rm -f ansible/inventory.ini'
     }
-    return ansibleExecution
+    ansibleExecution
 }
 
 
@@ -154,21 +154,21 @@ node(env.JENKINS_NODE) {
         Map envVars = [:]
         Boolean pipelineVariableNotDefined = false
         env.getEnvironment().each { name, value -> envVars.put(name, value) }
-        ArrayList requiredVariablesList = ['IP_LIST',
-                                           'SSH_LOGIN',
-                                           'SSH_PASSWORD',
-                                           'ZABBIX_AGENT_RELEASE',
-                                           'ANSIBLE_GIT_URL',
-                                           'ANSIBLE_GIT_BRANCH']
-        ArrayList otherVariablesList = ['SSH_SUDO_PASSWORD',
-                                        'INSTALL_AGENT_V2',
-                                        'CUSTOMIZE_AGENT',
-                                        'CUSTOMIZE_AGENT_ONLY',
-                                        'CLEAN_INSTALL',
-                                        'CUSTOM_PASSIVE_SERVERS_IPS',
-                                        'CUSTOM_ACTIVE_SERVERS_IPS',
-                                        'JENKINS_NODE',
-                                        'DEBUG_MODE']
+        List requiredVariablesList = ['IP_LIST',
+                                      'SSH_LOGIN',
+                                      'SSH_PASSWORD',
+                                      'ZABBIX_AGENT_RELEASE',
+                                      'ANSIBLE_GIT_URL',
+                                      'ANSIBLE_GIT_BRANCH']
+        List otherVariablesList = ['SSH_SUDO_PASSWORD',
+                                   'INSTALL_AGENT_V2',
+                                   'CUSTOMIZE_AGENT',
+                                   'CUSTOMIZE_AGENT_ONLY',
+                                   'CLEAN_INSTALL',
+                                   'CUSTOM_PASSIVE_SERVERS_IPS',
+                                   'CUSTOM_ACTIVE_SERVERS_IPS',
+                                   'JENKINS_NODE',
+                                   'DEBUG_MODE']
         (requiredVariablesList + otherVariablesList).each {
             pipelineVariableNotDefined = (!envVars.containsKey(it)) ? true : pipelineVariableNotDefined
         }
@@ -284,8 +284,10 @@ node(env.JENKINS_NODE) {
         // Clean SSH hosts fingerprints from ~/.ssh/known_hosts
         env.IP_LIST.split(' ').toList().each {
             sh String.format('ssh-keygen -f "%s/.ssh/known_hosts" -R %s', env.HOME, it)
+            /* groovylint-disable UnnecessaryToString */
             String ipAddress = sh(script: String.format('getent hosts %s | cut -d\' \' -f1', it), returnStdout: true)
-                    .toString() // groovylint-disable-line
+                    .toString()
+            /* groovylint-enable UnnecessaryToString */
             if (ipAddress?.trim())
                 sh String.format('ssh-keygen -f "%s/.ssh/known_hosts" -R %s', env.HOME, ipAddress)
         }

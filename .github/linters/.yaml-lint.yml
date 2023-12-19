@@ -4,7 +4,6 @@ extends: default
 ignore: |
   README.md
   LICENSE
-  .yamllint
 
 rules:
   braces:
@@ -37,5 +36,6 @@ rules:
     type: unix
   trailing-spaces: enable
   truthy:
+    # yamllint disable-line rule:truthy
     allowed-values: ['true', 'false']
     check-keys: True
