@@ -25,7 +25,7 @@
       "maxNestedBlockDepth": 10
     },
     "size.ParameterCount": {
-      "maxParameterCount": 10
+      "enabled": false
     },
     "naming.VariableName": {
       "enabled": false

@@ -1,4 +1,6 @@
-# Various jenkins scripted pipelines
+# Jenkins pipelines
+
+Various jenkins scripted pipelines.
 
 ![Lint](https://github.com/alexanderbazhenoff/jenkins-pipelines/actions/workflows/lint.yml/badge.svg?branch=main)
 
