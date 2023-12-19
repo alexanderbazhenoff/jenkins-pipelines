@@ -6,11 +6,23 @@
       "spacesPerIndentLevel": 4,
       "severity": "info"
     },
-    "ConsecutiveBlankLines": {
+    "braces.ElseBlockBraces": {
       "enabled": false
     },
-    "convention.CompileStatic": {
+    "braces.ForStatementBraces": {
       "enabled": false
+    },
+    "braces.IfStatementBraces": {
+      "enabled": false
+    },
+    "braces.WhileStatementBraces": {
+      "enabled": false
+    },
+    "unused.UnusedVariable": {
+      "ignoreVariableNames": "_"
+    },
+    "size.NestedBlockDepth": {
+      "maxNestedBlockDepth": 10
     },
     "UnnecessaryReturnKeyword": "error"
   }

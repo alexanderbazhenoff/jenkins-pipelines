@@ -27,97 +27,100 @@ import org.codehaus.groovy.runtime.StackTraceUtils
  *  Pipeline constants to enable or disable features.
  */
 // Due to security reasons you can enable or disable various actions, Bareos components and/or copy config(s) params:
-def ActionsEnabled = [install_and_add_client: [state      : true,
-                                               description: 'install and add file daemon'],
-                      access                : [state      : true,
-                                               description: 'create user profile to access Bareos Web UI'],
-                      revoke_access         : [state      : true,
-                                               description: 'revoke user profile access to Bareos Web UI'],
-                      add_client            : [state      : true,
-                                               description: 'add already installed Bareos file daemon to director'],
-                      copy_configs          : [state      : true,
-                                               description:
-                                                       'git clone and copy configs to already installed components'],
-                      install               : [state      : true,
-                                               description: 'install Bareos components'],
-                      uninstall             : [state      : true,
-                                               description: 'uninstall Bareos components']] as LinkedHashMap
-def BareosComponentsEnabled = [fd       : [state: true, description: 'file daemon'],
-                               sd       : [state: true, description: 'storage daemon'],
-                               dir      : [state: true, description: 'director'],
-                               webui    : [state: true, description: 'Web UI'],
-                               dir_webui: [state: true, description: 'director and Web UI']] as LinkedHashMap
-def WebUiProfilesEnabled = ['webui-admin'   : [state: true],
-                            operator        : [state: true],
-                            'webui-limited' : [state: true],
-                            'webui-readonly': [state: true]] as LinkedHashMap
-def BareosCopyConfigsParams = [
+final LinkedHashMap ActionsEnabled =
+        [install_and_add_client: [state      : true,
+                                  description: 'install and add file daemon'],
+         access                : [state      : true,
+                                  description: 'create user profile to access Bareos Web UI'],
+         revoke_access         : [state      : true,
+                                  description: 'revoke user profile access to Bareos Web UI'],
+         add_client            : [state      : true,
+                                  description: 'add already installed Bareos file daemon to director'],
+         copy_configs          : [state      : true,
+                                  description:
+                                          'git clone and copy configs to already installed components'],
+         install               : [state      : true,
+                                  description: 'install Bareos components'],
+         uninstall             : [state      : true,
+                                  description: 'uninstall Bareos components']]
+final LinkedHashMap BareosComponentsEnabled = [fd       : [state: true, description: 'file daemon'],
+                                               sd       : [state: true, description: 'storage daemon'],
+                                               dir      : [state: true, description: 'director'],
+                                               webui    : [state: true, description: 'Web UI'],
+                                               dir_webui: [state: true, description: 'director and Web UI']]
+/* groovylint-disable DuplicateMapLiteral */
+final LinkedHashMap WebUiProfilesEnabled = ['webui-admin'   : [state: true],
+                                            operator        : [state: true],
+                                            'webui-limited' : [state: true],
+                                            'webui-readonly': [state: true]]
+final LinkedHashMap BareosCopyConfigsParams = [
         fd          : [:],
         sd          : [:],
         dir         : [source: '/configs', destination: '/etc', owner: 'bareos', group: 'bareos'],
         webui       : [:],
         dir_webui   : [source: '/configs', destination: '/etc', owner: 'bareos', group: 'bareos'],
         copy_configs: [source: '/configs', destination: '/etc', owner: 'bareos', group: 'bareos']
-] as LinkedHashMap
+]
+/* groovylint-enable DuplicateMapLiteral */
 
 // Git credentials ID to clone ansible (e.g. a222b01a-230b-1234-1a12345678b9):
-def GitCredentialsId = '' as String
+final String GitCredentialsId = ''
 
 /**
  *  Default pipeline parameters
  */
 // List of Bareos versions selection for pipeline parameters injection (first run):
-def ListOfBareosReleases = ['current', 'next'] as ArrayList
+final ArrayList ListOfBareosReleases = ['current', 'next']
 
 // List of PostgreSQL versions selection for pipeline parameters injection (first run):
-def ListOfPostgreSqlVersions = [14, 15] as ArrayList
+final ArrayList ListOfPostgreSqlVersions = [14, 15]
 
 // List of additional Bareos packages to install for pipeline parameters injection (first run):
-def InstallAdditionalBareosPackagesDefaults = 'bareos-traymonitor' as String
+final String InstallAdditionalBareosPackagesDefaults = 'bareos-traymonitor'
 
 // Default ansible project git branch for pipeline parameters injection (first run):
-def DefaultAsnibleGitBranch = 'master' as String
+final String DefaultAsnibleGitBranch = 'master'
 
 // Default Bareos configs git URL for pipeline parameters injection (first run):
-def DefaultBareosConfigsUrl = '' as String
+final String DefaultBareosConfigsUrl = ''
 
 // Default Bareos configs git branch for pipeline parameters injection (first run). Typically this is main/master, but
 // empty by default to prevent copying on file daemon install:
-def DefaultBareosConfigsBranch = '' as String
+final String DefaultBareosConfigsBranch = ''
 
 // Folder inside of bareos configs git project to copy from:
-def BareosConfigsSouthRelativePath = '/bareos' as String
+final String BareosConfigsSouthRelativePath = '/bareos'
 
 // ssh private key filename to access Bareos server, which should be uploaded to $HOME/.ssh and added to Bareos server:
-def SshPrivateKeyFilename = 'id_rsa_bareos' as String
+final String SshPrivateKeyFilename = 'id_rsa_bareos'
 
 // Bareos server IP or DNS when USE_PIPELINE_CONSTANTS_FOR_BAREOS_SERVER_ACCESS set:
-def BareosServerHost = 'bareos.domain' as String
+final String BareosServerHost = 'bareos.domain'
 
 // Bareos server ssh user when USE_PIPELINE_CONSTANTS_FOR_BAREOS_SERVER_ACCESS set:
-def BareosServerSshLogin = 'username' as String
+final String BareosServerSshLogin = 'username'
 
 // Bareos ssh password when USE_PIPELINE_CONSTANTS_FOR_BAREOS_SERVER_ACCESS and USE_SSH_KEY_TO_CONNECT_BAREOS_SERVER
 // was set. Actually it's almost useless, because of using ssh key is easier:
-def BareosServerSshPassword = '' as String
+final String BareosServerSshPassword = ''
 
 /**
  *  Other pipeline parameters, playbook template parts, inventory files, ansible repo path, etc.
  */
 // Set Git URL, or leave them empty to install collection(s) defined in AnsibleCollectionsNames from ansible galaxy:
-def AnsibleGitRepoUrl = 'https://github.com/alexanderbazhenoff/ansible-collection-linux.git' as String
-def AnsibleCollectionName = 'alexanderbazhenoff.linux' as String
+final String AnsibleGitRepoUrl = 'https://github.com/alexanderbazhenoff/ansible-collection-linux.git'
+final String AnsibleCollectionName = 'alexanderbazhenoff.linux'
 
 // Force install ansible galaxy every single pipeline run, otherwise will not install newer version. In most cases
 // it's true. See this thread: https://github.com/ansible/ansible/issues/65699
 // So if you wish to freeze an old version, e.g. if a lot of changes in new version of ansible collection.
-def ForceInstallAnsibleCollection = true as Boolean
+final Boolean ForceInstallAnsibleCollection = true
 
 // List of nodes to execute ansible:
-def NodesToExecute = ['node-name.domain'] as ArrayList
+final ArrayList NodesToExecute = ['node-name.domain']
 
 // Ansible playbook template to execute on pipeline run. Variables inside will be templated from pipeline params.
-def AnsibleDefaultPlaybookTemplate = '''\
+final String AnsibleDefaultPlaybookTemplate = '''\
 ---
 
 - hosts: all
@@ -150,10 +153,10 @@ def AnsibleDefaultPlaybookTemplate = '''\
         bareos_configs_to_copy: "{{ configs_to_copy | default([]) }}"
         debug_mode: $DEBUG_MODE
       when: $ansible_hosts_condition
-''' as String
+'''
 
 // Ansible inventory templates and it's parts with different connection options.
-def AnsibleInventoryTemplate = '''\
+final String AnsibleInventoryTemplate = '''\
 [$ansible_hosts_group]
 $ansible_group_hosts
 
@@ -161,19 +164,19 @@ $ansible_group_hosts
 ansible_connection=ssh
 ansible_ssh_common_args='-o StrictHostKeyChecking=no'
 # ansible connection $ansible_hosts_group options
-''' as String
+'''
 
-def AnsibleInventoryPasswordConnectionOptions = '''\
+final String AnsibleInventoryPasswordConnectionOptions = '''\
 ansible_become_user=root
 ansible_ssh_user=$ansible_user
 ansible_ssh_pass=$ansible_password
 ansible_become_pass=$ansible_become_password
-''' as String
+'''
 
-def AnsibleInventorySshKeyConnectionOptions = '''\
+final String AnsibleInventorySshKeyConnectionOptions = '''\
 ansible_user=$ansible_user
 ansible_ssh_private_key_file=$home_folder/.ssh/$private_ssh_key_file_name
-''' as String
+'''
 
 
 /**
