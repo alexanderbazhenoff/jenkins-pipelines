@@ -19,18 +19,18 @@ import groovy.text.StreamingTemplateEngine
 
 
 // Pipeline parameters defaults
-def NodesToExecute = ['domain.com'] as ArrayList
-def DefaultGitUrl = 'https://github.com/golang/example.git' as String
-def DefaultGitProjectPath = 'example/outyet' as String
-def DefaultPostTestShellCommand = 'curl http://127.0.0.1:80' as String
+final NodesToExecute = ['domain.com'] as ArrayList
+final DefaultGitUrl = 'https://github.com/golang/example.git' as String
+final DefaultGitProjectPath = 'example/outyet' as String
+final DefaultPostTestShellCommand = 'curl http://127.0.0.1:80' as String
 
 
 // Dockerfiles templates
-def DockerFileHeadText = '''\
+final DockerFileHeadText = '''\
 FROM alpine:latest
 EXPOSE 80:8080
 ''' as String
-def DockerFileTestText = '''\
+final DockerFileTestText = '''\
 %s
 RUN apk update && apk add --no-cache bash git make musl-dev go
 ENV GOROOT /usr/lib/go
@@ -39,7 +39,7 @@ ENV GOCACHE /go/.cache
 RUN mkdir -p ${GOPATH}/src ${GOPATH}/bin ${GOPATH}/pkg && chmod -R 0777 /go
 ENV PATH /go/bin:$PATH
 ''' as String
-def DockerFileProdTemplate = '''\
+final DockerFileProdTemplate = '''\
 $dockerFileHeadText
 WORKDIR $workDir
 COPY $appBinaryName /usr/bin

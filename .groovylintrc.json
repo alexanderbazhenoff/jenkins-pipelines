@@ -6,6 +6,7 @@
       "spacesPerIndentLevel": 4,
       "severity": "info"
     },
+    "formatting.ConsecutiveBlankLines": "off",
     "UnnecessaryReturnKeyword": "error"
   }
 }
