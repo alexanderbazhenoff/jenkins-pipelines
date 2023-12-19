@@ -1,5 +1,4 @@
-Install zabbix agent Jenkins pipeline
--------------------------------------
+# Install zabbix agent Jenkins pipeline
 
 A jenkins pipeline for installing and customizing zabbix agent, or a wrapper for
 [zabbix_agent](https://github.com/alexanderbazhenoff/ansible-collection-linux/tree/main/roles/zabbix_agent)

@@ -1,5 +1,4 @@
-Install Bareos Jenkins pipeline
--------------------------------------
+# Install Bareos Jenkins pipeline
 
 A jenkins pipeline to install and configure Bareos and required third-party components, or a wrapper for
 [bareos](https://github.com/alexanderbazhenoff/ansible-collection-linux/tree/main/roles/bareos)
