@@ -19,18 +19,17 @@ import groovy.text.StreamingTemplateEngine
 
 
 // Pipeline parameters defaults
-final NodesToExecute = ['domain.com'] as ArrayList
-final DefaultGitUrl = 'https://github.com/golang/example.git' as String
-final DefaultGitProjectPath = 'example/outyet' as String
-final DefaultPostTestShellCommand = 'curl http://127.0.0.1:80' as String
-
+final ArrayList NodesToExecute = ['domain.com'] as ArrayList
+final String DefaultGitUrl = 'https://github.com/golang/example.git'
+final String DefaultGitProjectPath = 'example/outyet'
+final String DefaultPostTestShellCommand = 'curl http://127.0.0.1:80'
 
 // Dockerfiles templates
-final DockerFileHeadText = '''\
+final String DockerFileHeadText = '''\
 FROM alpine:latest
 EXPOSE 80:8080
-''' as String
-final DockerFileTestText = '''\
+'''
+final String DockerFileTestText = '''\
 %s
 RUN apk update && apk add --no-cache bash git make musl-dev go
 ENV GOROOT /usr/lib/go
@@ -38,14 +37,14 @@ ENV GOPATH /go
 ENV GOCACHE /go/.cache
 RUN mkdir -p ${GOPATH}/src ${GOPATH}/bin ${GOPATH}/pkg && chmod -R 0777 /go
 ENV PATH /go/bin:$PATH
-''' as String
-final DockerFileProdTemplate = '''\
+'''
+final String DockerFileProdTemplate = '''\
 $dockerFileHeadText
 WORKDIR $workDir
 COPY $appBinaryName /usr/bin
 RUN apk update && apk add --no-cache ca-certificates && rm -rf /var/cache/apk/* && chmod 775 /usr/bin/$appBinaryName
 ENTRYPOINT ["/usr/bin/$appBinaryName"]
-''' as String
+'''
 
 
 node(env.JENKINS_NODE) {

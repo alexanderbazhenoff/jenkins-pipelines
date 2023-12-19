@@ -1,5 +1,4 @@
-Dockerized Jenkins CI for Golang app (Jenkins pipeline)
--------------------------------------------------------
+# Dockerized Jenkins CI for Golang app (Jenkins pipeline)
 
 Jenkins Pipeline written on groovy as an example to clone golang sources of the project, run tests inside
 docker container and archive the latest Alpine Linux docker image with application binary as artifacts.
