@@ -6,7 +6,10 @@
       "spacesPerIndentLevel": 4,
       "severity": "info"
     },
-    "formatting.ConsecutiveBlankLines": "off",
+    "ConsecutiveBlankLines": {
+      "enabled": false
+    },
+    "convention.CompileStatic": "off",
     "UnnecessaryReturnKeyword": "error"
   }
 }
