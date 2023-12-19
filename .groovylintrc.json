@@ -9,7 +9,9 @@
     "ConsecutiveBlankLines": {
       "enabled": false
     },
-    "convention.CompileStatic": "off",
+    "convention.CompileStatic": {
+      "enabled": false
+    },
     "UnnecessaryReturnKeyword": "error"
   }
 }
