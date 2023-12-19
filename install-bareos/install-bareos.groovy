@@ -67,10 +67,10 @@ def GitCredentialsId = '' as String
  *  Default pipeline parameters
  */
 // List of Bareos versions selection for pipeline parameters injection (first run):
-def ListOfBareosReleases = [21] as ArrayList
+def ListOfBareosReleases = ['current', 'next'] as ArrayList
 
 // List of PostgreSQL versions selection for pipeline parameters injection (first run):
-def ListOfPostgreSqlVersions = [14] as ArrayList
+def ListOfPostgreSqlVersions = [14, 15] as ArrayList
 
 // List of additional Bareos packages to install for pipeline parameters injection (first run):
 def InstallAdditionalBareosPackagesDefaults = 'bareos-traymonitor' as String
@@ -108,13 +108,10 @@ def BareosServerSshPassword = '' as String
 def AnsibleGitRepoUrl = 'https://github.com/alexanderbazhenoff/ansible-collection-linux.git' as String
 def AnsibleCollectionName = 'alexanderbazhenoff.linux' as String
 
-// Force install ansible galaxy evry single pipeline run, otherwise will not install newer version. In most cases
+// Force install ansible galaxy every single pipeline run, otherwise will not install newer version. In most cases
 // it's true. See this thread: https://github.com/ansible/ansible/issues/65699
-// So if you wish to freez an old version, e.g. if a lot of changes in new version of ansible collection.
+// So if you wish to freeze an old version, e.g. if a lot of changes in new version of ansible collection.
 def ForceInstallAnsibleCollection = true as Boolean
-
-// Set your ansible installation name from jenkins settings:
-def AnsibleInstallationName = 'home_local_bin_ansible' as String
 
 // List of nodes to execute ansible:
 def NodesToExecute = ['node-name.domain'] as ArrayList
@@ -309,7 +306,7 @@ node(env.JENKINS_NODE) {
                                     bareosComponentsDescriptions.join(',<br>')),
                             choices: bareosComponentsChoices),
                     choice(name: 'BAREOS_RELEASE',
-                            description: 'Bareos version.<br><br><br><br>',
+                            description: 'Bareos release.<br><br><br><br>',
                             choices: ListOfBareosReleases),
                     string(name: 'OVERRIDE_LINUX_DISTRO_VERSION',
                             description: 'Override ansible distribution major version when there\'s no Bareos repo',
@@ -579,12 +576,9 @@ node(env.JENKINS_NODE) {
                     writeFile file: 'execute.yml', text: ansiblePlaybookText
                     outMsg(1, String.format('Running from:\n%s\n%s', ansiblePlaybookText, ("-" * 32)))
                     wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
-                        ansiblePlaybook(
-                                playbook: 'execute.yml',
-                                inventory: 'inventory.ini',
-                                colorized: true,
-                                extras: env.DEBUG_MODE.toBoolean() ? '-vvvv' : '',
-                                installation: AnsibleInstallationName)
+                        sh String.format('%s %s ansible-playbook %s %s -i %s', 'ANSIBLE_LOAD_CALLBACK_PLUGINS=1',
+                                'ANSIBLE_STDOUT_CALLBACK=yaml ANSIBLE_FORCE_COLOR=true', env.DEBUG_MODE.toBoolean() ?
+                                '-vvvv' : '', 'execute.yml', 'inventory.ini')
                     }
                 } catch (Exception error) {
                     outMsg(3, String.format('Running ansible failed: %s', String.format('Line %s: %s',

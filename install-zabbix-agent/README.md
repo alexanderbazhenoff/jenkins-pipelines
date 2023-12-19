@@ -9,20 +9,19 @@ ansible playbooks and running them from terminal.
 ## Requirements:
 1. Jenkins version 2.190.2 or higher.
 2. [Linux jenkins node](https://www.jenkins.io/doc/book/installing/linux/) to run pipeline.
-3. [Ansible Jenkins plugin](https://plugins.jenkins.io/ansible/).
-4. [AnsiColor Jenkins plugin](https://plugins.jenkins.io/ansicolor/) for colour console output.
-5. [Ansible installation](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html) on 
+3. [AnsiColor Jenkins plugin](https://plugins.jenkins.io/ansicolor/) for colour console output.
+4. [Ansible installation](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html) on 
    jenkins node(s). Required ansible version specified in
    [meta/main.yml](https://github.com/alexanderbazhenoff/ansible-collection-linux/blob/main/roles/zabbix_agent/meta/main.yml) 
-6. All other requirements from
+5. All other requirements from
 [zabbix_agent ansible role](https://github.com/alexanderbazhenoff/ansible-collection-linux/tree/main/roles/zabbix_agent#requirements).
-7. This pipeline may require groovy methods approve. If you see a message like:
+6. This pipeline may require groovy methods approve. If you see a message like:
    'Scripts not permitted to use staticMethod ... Administrators can decide whether to approve or reject this signature'
    that means you need to allow them to execute. Navigate to `Jenkins -> Manage Jenkins -> In-process script 
    approval`, find a blocked method (the newest one is usually at the bottom) then click 'Approve'. Or refactor this
    pipeline and move all these methods to 
    [jenkins share library](https://www.jenkins.io/doc/book/pipeline/shared-libraries/).
-8. Internet access on Jenkins node(s) to install alexanderbazhenoff.linux.zabbix_agent from GitHub (or put this to your 
+7. Internet access on Jenkins node(s) to install alexanderbazhenoff.linux.zabbix_agent from GitHub (or put this to your 
    local environment and change the URL in pipeline code).
 
 ## Usage:
@@ -40,8 +39,7 @@ ansible playbooks and running them from terminal.
      on jenkins master.
    - **ZabbixAgentVersions** is a list of zabbix agent versions.
    Other variables you can also set from a jenkins GUI on the second pipeline run.
-3. Install [Ansible](https://plugins.jenkins.io/ansible/) and [AnsiColor](https://plugins.jenkins.io/ansicolor/) 
-   jenkins plugins on jenkins master and restart jenkins.
+3. Install [AnsiColor](https://plugins.jenkins.io/ansicolor/) jenkins plugin on jenkins master and restart jenkins.
 4. Run pipeline twice. The first run injects jenkins pipeline parameters with your defaults which was specified on
    step 2.
 

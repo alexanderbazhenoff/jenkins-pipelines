@@ -30,13 +30,10 @@ def AnsibleGitDefaultBranch = 'main' as String
 def AnsibleGitCredentialsId = '' as String
 
 // Set your ansible installation name from jenkins settings.
-def AnsibleInstallationName = 'home_local_bin_ansible' as String
-
-// Set your ansible installation name from jenkins settings.
 def NodesToExecute = ['domain.com'] as ArrayList
 
-// List of Zabbix version to select in ZABBIX_AGENT_VERSION pipeline parameter.
-def ZabbixAgentVersions = ['5.0', '4.0'] as ArrayList
+// List of Zabbix version to select in ZABBIX_AGENT_RELEASE pipeline parameter.
+def ZabbixAgentVersions = ['5.0', '5,5', '6.0', '4.0'] as ArrayList
 
 
 // Playbook template, inventory files and ansible repo path.
@@ -50,7 +47,7 @@ def AnsibleDefaultPlaybookTemplate = '''\
       ansible.builtin.include_role:
         name: alexanderbazhenoff.linux.zabbix_agent
       vars:
-        agent_version: $agent_version
+        zabbix_release: $zabbix_release
         install_v2_agent: $install_v2_agent
         customize_agent: $network_bridge_name
         customize_agent_only: $customize_agent_only
@@ -119,13 +116,10 @@ def outMsg(Integer eventNum, String text) {
  *                             ansible-galaxy directory layout standards. If variable wasn't pass (empty) the roles
  *                             will be called an old-way from a playbook placed in 'roles/execute.yml'. It's only for
  *                             the backward capability.
- * @param ansibleInstallation - name of the ansible installation predefined in jenkins Global Configuration Tool.
- *                              Check https://issues.jenkins.io/browse/JENKINS-67209 for details.
  * @return - success (true when ok)
  */
 Boolean runAnsible(String ansiblePlaybookText, String ansibleInventoryText, String ansibleGitlabUrl,
-                   String ansibleGitlabBranch, String gitCredentialsID, String ansibleExtras = '',
-                   String ansibleInstallation = '') {
+                   String ansibleGitlabBranch, String gitCredentialsID, String ansibleExtras = '') {
     Boolean ansibleExecution = true
     try {
         dir('ansible') {
@@ -139,12 +133,9 @@ Boolean runAnsible(String ansiblePlaybookText, String ansibleInventoryText, Stri
             writeFile file: 'inventory.ini', text: ansibleInventoryText
             writeFile file: 'execute.yml', text: ansiblePlaybookText
             outMsg(1, String.format('Running from:\n%s\n%s', ansiblePlaybookText, ("-" * 32)))
-            ansiblePlaybook(
-                    playbook: 'execute.yml',
-                    inventory: 'inventory.ini',
-                    colorized: true,
-                    extras: ansibleExtras,
-                    installation: ansibleInstallation)
+            sh String.format('%s %s ansible-playbook %s -i %s %s', 'ANSIBLE_LOAD_CALLBACK_PLUGINS=1',
+                    'ANSIBLE_STDOUT_CALLBACK=yaml ANSIBLE_FORCE_COLOR=true', 'execute.yml', 'inventory.ini',
+                    ansibleExtras)
         }
     } catch (Exception err) {
         outMsg(3, String.format('Running ansible failed: %s', readableError(err)))
@@ -166,7 +157,7 @@ node(env.JENKINS_NODE) {
         ArrayList requiredVariablesList = ['IP_LIST',
                                            'SSH_LOGIN',
                                            'SSH_PASSWORD',
-                                           'ZABBIX_AGENT_VERSION',
+                                           'ZABBIX_AGENT_RELEASE',
                                            'ANSIBLE_GIT_URL',
                                            'ANSIBLE_GIT_BRANCH']
         ArrayList otherVariablesList = ['SSH_SUDO_PASSWORD',
@@ -205,7 +196,7 @@ node(env.JENKINS_NODE) {
                              booleanParam(name: 'CUSTOMIZE_AGENT_ONLY',
                                      description: 'Configure Zabbix agent config for service discovery without install.',
                                      defaultValue: false),
-                             choice(name: 'ZABBIX_AGENT_VERSION',
+                             choice(name: 'ZABBIX_AGENT_RELEASE',
                                      description: 'Zabbix agent version.',
                                      choices: ZabbixAgentVersions),
                              booleanParam(name: 'CLEAN_INSTALL',
@@ -267,8 +258,7 @@ node(env.JENKINS_NODE) {
                 network_bridge_name   : env.CUSTOMIZE_AGENT,
                 customize_agent_only  : env.CUSTOMIZE_AGENT_ONLY,
                 clean_install         : env.CLEAN_INSTALL,
-                force_install_agent_v1: !(env.INSTALL_AGENT_V2.toBoolean()).toString(),
-                agent_version         : env.ZABBIX_AGENT_VERSION
+                zabbix_release        : env.ZABBIX_AGENT_RELEASE
         ]
         if (env.CUSTOM_PASSIVE_SERVERS_IPS?.trim()) {
             println String.format('Found custom active zabbix server(s): %s', env.CUSTOM_PASSIVE_SERVERS_IPS)
@@ -302,10 +292,9 @@ node(env.JENKINS_NODE) {
 
         // Run ansible role
         String ansibleVerbose = (env.DEBUG_MODE.toBoolean()) ? '-vvvv' : ''
-        String ansibleRunArgs = String.format('%s %s', ansibleCheckMode, ansibleVerbose)
         wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
             if (!runAnsible(ansiblePlaybookText, ansibleInventoryText, env.ANSIBLE_GIT_URL, env.ANSIBLE_GIT_BRANCH,
-                    AnsibleGitCredentialsId, ansibleRunArgs, AnsibleInstallationName))
+                    AnsibleGitCredentialsId, ansibleVerbose))
                 error 'Ansible playbook execution failed.'
         }
 
