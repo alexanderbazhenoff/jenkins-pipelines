@@ -29,6 +29,7 @@ final String DockerFileHeadText = '''\
 FROM alpine:latest
 EXPOSE 80:8080
 '''
+/* groovylint-disable GStringExpressionWithinString */
 final String DockerFileTestText = '''\
 %s
 RUN apk update && apk add --no-cache bash git make musl-dev go
@@ -38,6 +39,7 @@ ENV GOCACHE /go/.cache
 RUN mkdir -p ${GOPATH}/src ${GOPATH}/bin ${GOPATH}/pkg && chmod -R 0777 /go
 ENV PATH /go/bin:$PATH
 '''
+/* groovylint-disable GStringExpressionWithinString */
 final String DockerFileProdTemplate = '''\
 $dockerFileHeadText
 WORKDIR $workDir
