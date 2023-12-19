@@ -19,15 +19,21 @@
       "enabled": false
     },
     "unused.UnusedVariable": {
-      "ignoreVariableNames": "_"
+      "ignoreVariableNames": "__"
     },
     "size.NestedBlockDepth": {
       "maxNestedBlockDepth": 10
+    },
+    "size.ParameterCount": {
+      "maxParameterCount": 10
     },
     "naming.VariableName": {
       "enabled": false
     },
     "ConsecutiveBlankLines": {
+      "enabled": false
+    },
+    "CatchException": {
       "enabled": false
     },
     "UnnecessaryReturnKeyword": "error"

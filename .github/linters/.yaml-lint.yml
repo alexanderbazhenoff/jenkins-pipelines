@@ -5,7 +5,6 @@ ignore: |
   README.md
   LICENSE
   .yamllint
-  .flake8
 
 rules:
   braces:

@@ -6,6 +6,7 @@ ansible role. It gives you an opportunity do directly from Jenkins setting up pi
 ansible playbooks and running them from terminal.
 
 ## Requirements
+
 1. Jenkins version 2.190.2 or higher.
 2. [Linux jenkins node](https://www.jenkins.io/doc/book/installing/linux/) to run pipeline.
 3. [AnsiColor Jenkins plugin](https://plugins.jenkins.io/ansicolor/) for colour console output.
@@ -24,15 +25,18 @@ ansible playbooks and running them from terminal.
    local environment and change the URL in pipeline code).
 
 ## Usage
+
 1. Create jenkins pipeline with 'Pipeline script from SCM', set-up SCM, Branch Specifier as `*/main` and Script Path as
    `install-zabbix-agent/install-zabbix-agent.groovy`.
 2. Specify defaults for jenkins pipeline parameters in a global variables of pipeline code:
    - **AnsibleInstallationName** is named path of your ansible installation from:
      `Jenkins -> Configure Jenkins -> Golbal Tool Configuration -> Ansible`, e.g:
+
      ```text
      Name: home_local_bin_ansible
      Path to ansible executables directory: $HOME/.local/bin/
      ```
+
      for your pip installation under user. Or check your installation path with `ansible --version` command.
    - **NodesToExecute** is a list of jenkins nodes to execute on (with installed ansible), otherwise this will run
      on jenkins master.
@@ -43,6 +47,7 @@ ansible playbooks and running them from terminal.
    step 2.
 
 ## Pipeline parameters
+
 - **IP_LIST**: Space separated IP or DNS list.
 - **SSH_LOGIN**: Login for SSH connection (The same for all hosts).
 - **SSH_PASSWORD**: SSH password (The same for all hosts).

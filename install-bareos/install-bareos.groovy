@@ -27,7 +27,7 @@ import org.codehaus.groovy.runtime.StackTraceUtils
  *  Pipeline constants to enable or disable features.
  */
 // Due to security reasons you can enable or disable various actions, Bareos components and/or copy config(s) params:
-final LinkedHashMap ActionsEnabled =
+final Map ActionsEnabled =
         [install_and_add_client: [state      : true,
                                   description: 'install and add file daemon'],
          access                : [state      : true,
@@ -43,17 +43,17 @@ final LinkedHashMap ActionsEnabled =
                                   description: 'install Bareos components'],
          uninstall             : [state      : true,
                                   description: 'uninstall Bareos components']]
-final LinkedHashMap BareosComponentsEnabled = [fd       : [state: true, description: 'file daemon'],
-                                               sd       : [state: true, description: 'storage daemon'],
-                                               dir      : [state: true, description: 'director'],
-                                               webui    : [state: true, description: 'Web UI'],
-                                               dir_webui: [state: true, description: 'director and Web UI']]
+final Map BareosComponentsEnabled = [fd       : [state: true, description: 'file daemon'],
+                                     sd       : [state: true, description: 'storage daemon'],
+                                     dir      : [state: true, description: 'director'],
+                                     webui    : [state: true, description: 'Web UI'],
+                                     dir_webui: [state: true, description: 'director and Web UI']]
 /* groovylint-disable DuplicateMapLiteral */
-final LinkedHashMap WebUiProfilesEnabled = ['webui-admin'   : [state: true],
-                                            operator        : [state: true],
-                                            'webui-limited' : [state: true],
-                                            'webui-readonly': [state: true]]
-final LinkedHashMap BareosCopyConfigsParams = [
+final Map WebUiProfilesEnabled = ['webui-admin'   : [state: true],
+                                  operator        : [state: true],
+                                  'webui-limited' : [state: true],
+                                  'webui-readonly': [state: true]]
+final Map BareosCopyConfigsParams = [
         fd          : [:],
         sd          : [:],
         dir         : [source: '/configs', destination: '/etc', owner: 'bareos', group: 'bareos'],
@@ -70,10 +70,10 @@ final String GitCredentialsId = ''
  *  Default pipeline parameters
  */
 // List of Bareos versions selection for pipeline parameters injection (first run):
-final ArrayList ListOfBareosReleases = ['current', 'next']
+final List ListOfBareosReleases = ['current', 'next']
 
 // List of PostgreSQL versions selection for pipeline parameters injection (first run):
-final ArrayList ListOfPostgreSqlVersions = [14, 15]
+final List ListOfPostgreSqlVersions = [14, 15]
 
 // List of additional Bareos packages to install for pipeline parameters injection (first run):
 final String InstallAdditionalBareosPackagesDefaults = 'bareos-traymonitor'
@@ -117,7 +117,7 @@ final String AnsibleCollectionName = 'alexanderbazhenoff.linux'
 final Boolean ForceInstallAnsibleCollection = true
 
 // List of nodes to execute ansible:
-final ArrayList NodesToExecute = ['node-name.domain']
+final List NodesToExecute = ['node-name.domain']
 
 // Ansible playbook template to execute on pipeline run. Variables inside will be templated from pipeline params.
 final String AnsibleDefaultPlaybookTemplate = '''\
@@ -208,7 +208,7 @@ static makeListOfEnabledOptions(Map optionsMap, String formatTemplate = '%s - %s
  * @param text - text to output
  */
 def outMsg(Integer eventNum, String text) {
-    wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
+    wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) { // groovylint-disable-line
         List eventTypes = [
                 '\033[0;34mDEBUG\033[0m',
                 '\033[0;32mINFO\033[0m',

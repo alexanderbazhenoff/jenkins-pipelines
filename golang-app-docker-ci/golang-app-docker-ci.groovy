@@ -19,7 +19,7 @@ import groovy.text.StreamingTemplateEngine
 
 
 // Pipeline parameters defaults
-final ArrayList NodesToExecute = ['domain.com']
+final List NodesToExecute = ['domain.com']
 final String DefaultGitUrl = 'https://github.com/golang/example.git'
 final String DefaultGitProjectPath = 'example/outyet'
 final String DefaultPostTestShellCommand = 'curl http://127.0.0.1:80'

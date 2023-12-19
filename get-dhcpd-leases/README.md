@@ -5,6 +5,7 @@ A tiny wrapper for
 leases info from isc-dhcp-server using Jenkins.
 
 ## Requirements
+
 1. Jenkins version 2.190.2 or higher (older versions are probably also fine, but wasn't tested).
 2. [Linux jenkins node](https://www.jenkins.io/doc/book/installing/linux/) installed and configured on your dhcp
    server to run this pipeline.
@@ -13,6 +14,7 @@ leases info from isc-dhcp-server using Jenkins.
 download this file to your custom path then change `VENDORS_FILE_PATH` variable in the script.
 
 ## Usage
+
 1. Create jenkins pipeline with 'Pipeline script from SCM', set-up SCM, Branch Specifier as `*/main` and Script Path as
    `get-dhcpd-leases/get-dhcpd-leases.groovy`.
 2. Specify defaults for jenkins pipeline parameters in a global variables of pipeline code.

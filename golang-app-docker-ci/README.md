@@ -4,6 +4,7 @@ Jenkins Pipeline written on groovy as an example to clone golang sources of the 
 docker container and archive the latest Alpine Linux docker image with application binary as artifacts.
 
 ## Requirements
+
 1. Jenkins version 2.190.2 or higher.
 2. [Linux jenkins node](https://www.jenkins.io/doc/book/installing/linux/) to run pipeline.
 3. [Cloudbees Docker Workflow Jenkins plugin](https://docs.cloudbees.com/docs/admin-resources/latest/plugins/docker-workflow).
@@ -17,6 +18,7 @@ docker container and archive the latest Alpine Linux docker image with applicati
 6. Internet access on Jenkins node(s) to download docker image and golang project.
 
 ## Usage
+
 1. Create jenkins pipeline with 'Pipeline script from SCM', set-up SCM, Branch Specifier as `*/main` and Script Path as
    `golang-app-docker-ci/golang-app-docker-ci.groovy`.
 2. Specify defaults for jenkins pipeline parameters in a global variables of pipeline code, or do it later in Jenkins
@@ -31,9 +33,10 @@ docker container and archive the latest Alpine Linux docker image with applicati
    step 2.
 
 ## Pipeline parameters
+
 - **GIT_URL**: Git URL of golang project.
 - **GIT_PROJECT_PATH**: Project inner path, e.g. `folder/subfolder/app_name`.
 - **JENKINS_NODE**: List of possible jenkins nodes to execute.
 - **RACE_COVER_TEST_FLAGS**: Enable `-race` and `-cover` flags for `go test` command execution.
 - **APP_POSTTEST_COMMAND**: Post-test shell command to ensure go app is working. On success docker image artifacts will
-  be attached attached. Leave them empty to skip post-testing. E.g: `curl http://127.0.0.1:80` to check web app is up.
+  be attached. Leave them empty to skip post-testing. E.g: `curl http://127.0.0.1:80` to check web app is up.

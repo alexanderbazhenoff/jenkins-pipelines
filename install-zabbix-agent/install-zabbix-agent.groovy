@@ -30,10 +30,10 @@ final String AnsibleGitDefaultBranch = 'main'
 final String AnsibleGitCredentialsId = ''
 
 // Set your ansible installation name from jenkins settings.
-final ArrayList NodesToExecute = ['domain.com']
+final List NodesToExecute = ['domain.com']
 
 // List of Zabbix version to select in ZABBIX_AGENT_RELEASE pipeline parameter.
-final ArrayList ZabbixAgentVersions = ['5.0', '5,5', '6.0', '4.0']
+final List ZabbixAgentVersions = ['5.0', '5,5', '6.0', '4.0']
 
 
 // Playbook template, inventory files and ansible repo path.
@@ -82,7 +82,7 @@ ansible_become_pass=$ssh_become_password
  * @param error - Exception error.
  */
 static String readableError(Throwable error) {
-    return String.format('Line %s: %s', error.stackTrace.head().lineNumber, StackTraceUtils.sanitize(error))
+    String.format('Line %s: %s', error.stackTrace.head().lineNumber, StackTraceUtils.sanitize(error))
 }
 
 /**
@@ -92,7 +92,7 @@ static String readableError(Throwable error) {
  * @param text - text to output
  */
 def outMsg(Integer eventNum, String text) {
-    wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
+    wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) { // groovylint-disable-line
         List eventTypes = [
                 '\033[0;34mDEBUG\033[0m',
                 '\033[0;32mINFO\033[0m',
@@ -137,13 +137,13 @@ Boolean runAnsible(String ansiblePlaybookText, String ansibleInventoryText, Stri
                     'ANSIBLE_STDOUT_CALLBACK=yaml ANSIBLE_FORCE_COLOR=true', 'execute.yml', 'inventory.ini',
                     ansibleExtras)
         }
-    } catch (Exception err) {
+    } catch (Exception err) { // groovylint-disable-line
         outMsg(3, String.format('Running ansible failed: %s', readableError(err)))
         ansibleExecution = false
     } finally {
         sh 'sudo rm -f ansible/inventory.ini'
-        return ansibleExecution
     }
+    return ansibleExecution
 }
 
 
@@ -194,7 +194,7 @@ node(env.JENKINS_NODE) {
                                      description: 'Configure Zabbix agent config for service discovery.',
                                      defaultValue: true),
                              booleanParam(name: 'CUSTOMIZE_AGENT_ONLY',
-                                     description: 'Configure Zabbix agent config for service discovery without install.',
+                                     description: 'Configure Zabbix agent for service discovery without install.',
                                      defaultValue: false),
                              choice(name: 'ZABBIX_AGENT_RELEASE',
                                      description: 'Zabbix agent version.',
@@ -271,7 +271,7 @@ node(env.JENKINS_NODE) {
             ansiblePlaybookVariableBinding += [servers_active: env.CUSTOM_ACTIVE_SERVERS_IPS]
         }
         String ansiblePlaybookText = new StreamingTemplateEngine().createTemplate(AnsibleDefaultPlaybookTemplate)
-                .make(ansiblePlaybookVariableBinding).toString()
+                .make(ansiblePlaybookVariableBinding)
         Map ansibleInventoryVariableBinding = [
                 hosts_list         : env.IP_LIST.replaceAll(' ', '\n'),
                 ssh_user           : env.SSH_LOGIN,
@@ -279,15 +279,15 @@ node(env.JENKINS_NODE) {
                 ssh_become_password: env.SSH_SUDO_PASSWORD
         ]
         String ansibleInventoryText = new StreamingTemplateEngine().createTemplate(AnsibleInventoryTemplate)
-                .make(ansibleInventoryVariableBinding).toString()
+                .make(ansibleInventoryVariableBinding)
 
         // Clean SSH hosts fingerprints from ~/.ssh/known_hosts
         env.IP_LIST.split(' ').toList().each {
-            sh String.format('ssh-keygen -f "${HOME}/.ssh/known_hosts" -R %s', it)
+            sh String.format('ssh-keygen -f "%s/.ssh/known_hosts" -R %s', env.HOME, it)
             String ipAddress = sh(script: String.format('getent hosts %s | cut -d\' \' -f1', it), returnStdout: true)
-                    .toString()
+                    .toString() // groovylint-disable-line
             if (ipAddress?.trim())
-                sh String.format('ssh-keygen -f "${HOME}/.ssh/known_hosts" -R %s', ipAddress)
+                sh String.format('ssh-keygen -f "%s/.ssh/known_hosts" -R %s', env.HOME, ipAddress)
         }
 
         // Run ansible role

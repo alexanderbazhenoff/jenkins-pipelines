@@ -6,6 +6,7 @@ ansible role. It gives you an opportunity do directly from Jenkins setting up pi
 ansible playbooks and running them from terminal.
 
 ## Requirements
+
 1. Jenkins version 2.190.2 or higher.
 2. [Linux jenkins node](https://www.jenkins.io/doc/book/installing/linux/) to run pipeline.
 3. [AnsiColor Jenkins plugin](https://plugins.jenkins.io/ansicolor/) for colour console output.
@@ -24,6 +25,7 @@ ansible playbooks and running them from terminal.
    local environment and change a URL in pipeline code).
 
 ## Usage
+
 1. Create jenkins pipeline with 'Pipeline script from SCM', set-up SCM, Branch Specifier as `*/main` and Script Path as
    `install-bareos/install-bareos.groovy`.
 2. Install [AnsiColor](https://plugins.jenkins.io/ansicolor/) jenkins plugin on jenkins master and restart jenkins.
@@ -43,12 +45,15 @@ ansible playbooks and running them from terminal.
 5. (optional) If you wish to connect Bareos server with ssh key instead of typing login and password in pipeline
    parameters, generate ssh keys and modify `~/.ssh/config` on your Jenkins nodes specified in **NodesToExecute**
    global pipeline variable. So login to jenkins user and generate key and add them to Bareos server:
+
    ```bash
    ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa_bareos
    ssh-copy-id -i ~/.ssh/id_rsa_bareos username@bareos.domain
    ```
-   Set username in **BareosServerSshLogin** and bareos server in **BareosServerHost** global pipeline variables. 
+
+   Set username in **BareosServerSshLogin** and bareos server in **BareosServerHost** global pipeline variables.
    Then add the next lines to your ssh config in home folder (e.g. `~/.ssh/config`). For example:
+
    ```text
     Host bareos bareos.domain
         hostname bareos.domnain
@@ -56,6 +61,7 @@ ansible playbooks and running them from terminal.
         user username
         IdentityFile ~/.ssh/id_rsa_bareos
    ```
+
 6. Optionally modify another jenkins pipeline global variables like: **ListOfBareosReleases**,
    **ListOfPostgreSqlVersions**, etc.
 7. For security reasons you may wish to disable installation and/or control of various Bareos components. Check
@@ -72,6 +78,7 @@ ansible playbooks and running them from terminal.
 ## Pipeline parameters
 
 ### Main Bareos parameters
+
 - **IP_LIST**: Space separated IP or DNS list for install/uninstall components and copy configs.
 - **SSH_LOGIN**: Login for SSH connection for install/uninstall components and copy configs (The same for all hosts).
 - **SSH_PASSWORD**: SSH password for install/uninstall components and copy configs (The same for all hosts).
@@ -89,10 +96,11 @@ ansible playbooks and running them from terminal.
   **dir** - director, **webui** - Web UI, **dir_webui** - director and Web UI.
 - **BAREOS_RELEASE**: Bareos version.
 - **OVERRIDE_LINUX_DISTRO_VERSION**: Override ansible linux distribution major version. Useful when specified Bareos
-version repo is not available for your Linux distribution version (example: Bareos v21 currently is
+version repository is not available for your Linux distribution version (example: Bareos v21 currently is
 [not available](https://download.bareos.org/bareos/release/21/) for any RedHat v9, so try to set `8` here).
 
 ### Bareos file daemon and Bareos server parameters
+
 - **FILE_DAEMON_NAME**: Name of file daemon to display on Bareos server on file daemon add (leave '' for FQDN or
   hostname).
 - **FILE_DAEMON_PASSWORD**: Password to connect file daemon with (leave unspecified to generate random password).
@@ -106,6 +114,7 @@ version repo is not available for your Linux distribution version (example: Bare
 - **BAREOS_SERVER_SSH_PASSWORD**: Bareos Server SSH password for Bareos client add, grant/revoke Web UI access.
 
 ### Bareos Web UI parameters
+
 - **WEBUI_USERNAME**: Web UI username to create or revoke access.
 - **WEBUI_PASSWORD**: Web UI password to create or revoke access.
 - **WEBUI_PROFILE**: Web UI access profile.
@@ -113,17 +122,20 @@ version repo is not available for your Linux distribution version (example: Bare
 [bareos role](https://github.com/alexanderbazhenoff/ansible-collection-linux/tree/main/roles/bareos).
 
 ### Bareos database parameters
+
 - **PREINSTALLED_POSTGRESQL**: Already preinstalled PostgreSQL before Bareos director install.
 - **POSTGRESQL_VERSION**: Version of PostgreSQL to install.
 - **INIT_BAREOS_DATABASE**: Force init Bareos database (run scripts) before Bareos install (for CentOS 7 will run
   anyway).
 
 ### Other Bareos parameters
+
 - **INSTALL_ADDITIONAL_BAREOS_PACKAGES**: Space separated list of additional Bareos packages to install.
 - **CONFIGS_GIT_URL**: Bareos configs git URL (e.g. for **copy_configs** action).
 - **CONFIGS_GIT_BRANCH**: Bareos configs git branch. Leave empty to skip configs copy.
 
 ### Pipeline main parameters
+
 - **ANSIBLE_GIT_BRANCH**: Git branch of ansible project with bareos role.
 - **DEBUG_MODE**: Verbose output.
 - **JENKINS_NODE**: Jenkins node to execute this pipeline and ansible role.
