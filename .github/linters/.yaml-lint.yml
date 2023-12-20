@@ -36,6 +36,5 @@ rules:
     type: unix
   trailing-spaces: enable
   truthy:
-    # yamllint disable-line rule:truthy
-    allowed-values: ['true', 'false']
+    allowed-values: ['true', 'false']   # yamllint disable-line rule:truthy
     check-keys: True

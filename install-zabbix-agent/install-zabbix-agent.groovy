@@ -82,7 +82,7 @@ ansible_become_pass=$ssh_become_password
  * @param error - Exception error.
  */
 static String readableError(Throwable error) {
-    String.format('Line %s: %s', error.stackTrace.head().lineNumber, StackTraceUtils.sanitize(error))
+    return String.format('Line %s: %s', error.stackTrace.head().lineNumber, StackTraceUtils.sanitize(error))
 }
 
 /**
@@ -125,14 +125,14 @@ Boolean runAnsible(String ansiblePlaybookText, String ansibleInventoryText, Stri
         dir('ansible') {
             sh 'sudo rm -rf *'
             git branch: ansibleGitlabBranch, credentialsId: gitCredentialsID, url: ansibleGitlabUrl
-            if (sh(returnStdout: true, returnStatus: true, script: '''ansible-galaxy collection build 
+            if (sh(returnStdout: true, returnStatus: true, script: '''ansible-galaxy collection build
                         ansible-galaxy collection install $(ls -1 | grep ".tar.gz") -f''') != 0) {
                 outMsg(3, 'There was an error building and installing ansible collection.')
                 sh 'exit 1'
             }
             writeFile file: 'inventory.ini', text: ansibleInventoryText
             writeFile file: 'execute.yml', text: ansiblePlaybookText
-            outMsg(1, String.format('Running from:\n%s\n%s', ansiblePlaybookText, ("-" * 32)))
+            outMsg(1, String.format('Running from:\n%s\n%s', ansiblePlaybookText, ('-' * 32)))
             sh String.format('%s %s ansible-playbook %s -i %s %s', 'ANSIBLE_LOAD_CALLBACK_PLUGINS=1',
                     'ANSIBLE_STDOUT_CALLBACK=yaml ANSIBLE_FORCE_COLOR=true', 'execute.yml', 'inventory.ini',
                     ansibleExtras)
@@ -153,7 +153,7 @@ node(env.JENKINS_NODE) {
         // Pipeline parameters check and inject (first run)
         Map envVars = [:]
         Boolean pipelineVariableNotDefined = false
-        env.getEnvironment().each { name, value -> envVars.put(name, value) }
+        env.getEnvironment().each { name, value -> envVars.put(name, value) } // groovylint-disable-line
         List requiredVariablesList = ['IP_LIST',
                                       'SSH_LOGIN',
                                       'SSH_PASSWORD',
@@ -170,7 +170,7 @@ node(env.JENKINS_NODE) {
                                    'JENKINS_NODE',
                                    'DEBUG_MODE']
         (requiredVariablesList + otherVariablesList).each {
-            pipelineVariableNotDefined = (!envVars.containsKey(it)) ? true : pipelineVariableNotDefined
+            pipelineVariableNotDefined = (envVars.containsKey(it)) ? pipelineVariableNotDefined : true
         }
         if (pipelineVariableNotDefined) {
             properties([
@@ -232,8 +232,8 @@ node(env.JENKINS_NODE) {
             ])
             outMsg(1,
                     "Pipeline parameters was successfully injected. Select 'Build with parameters' and run again.")
-            currentBuild.build().getExecutor().interrupt(Result.SUCCESS)
-            sleep(time: 3, unit: "SECONDS")
+            currentBuild.build().getExecutor().interrupt(Result.SUCCESS) // groovylint-disable-line
+            sleep(time: 3, unit: 'SECONDS')
         }
 
         // Check and handling required pipeline parameters
@@ -241,7 +241,7 @@ node(env.JENKINS_NODE) {
         requiredVariablesList.each {
             if (params.containsKey(it) && !env[it.toString()]?.trim()) {
                 errorsFound = true
-                outMsg(3, String.format("%s is undefined for current job run. Please set then run again.", it))
+                outMsg(3, String.format('%s is undefined for current job run. Please set then run again.', it))
             }
         }
         if (errorsFound)

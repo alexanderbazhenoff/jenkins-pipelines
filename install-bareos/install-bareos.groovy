@@ -48,7 +48,7 @@ final Map BareosComponentsEnabled = [fd       : [state: true, description: 'file
                                      dir      : [state: true, description: 'director'],
                                      webui    : [state: true, description: 'Web UI'],
                                      dir_webui: [state: true, description: 'director and Web UI']]
-/* groovylint-disable DuplicateMapLiteral */
+/* groovylint-disable DuplicateMapLiteral DuplicateStringLiteral */
 final Map WebUiProfilesEnabled = ['webui-admin'   : [state: true],
                                   operator        : [state: true],
                                   'webui-limited' : [state: true],
@@ -61,7 +61,7 @@ final Map BareosCopyConfigsParams = [
         dir_webui   : [source: '/configs', destination: '/etc', owner: 'bareos', group: 'bareos'],
         copy_configs: [source: '/configs', destination: '/etc', owner: 'bareos', group: 'bareos']
 ]
-/* groovylint-enable DuplicateMapLiteral */
+/* groovylint-enable DuplicateMapLiteral DuplicateStringLiteral */
 
 // Git credentials ID to clone ansible (e.g. a222b01a-230b-1234-1a12345678b9):
 final String GitCredentialsId = ''
@@ -126,12 +126,12 @@ final String AnsibleDefaultPlaybookTemplate = '''\
 - hosts: all
   become: True
   become_method: sudo
-   
+
   vars:
     additional_bareos_packages: '$INSTALL_ADDITIONAL_BAREOS_PACKAGES'
     configs_to_copy: $bareos_configs_to_copy
-    
-  tasks:    
+
+  tasks:
     - name: "install bareos pipeline | Include Bareos role to perform required action: $ACTION"
       ansible.builtin.include_role:
         name: $ansible_collection.bareos
@@ -188,7 +188,7 @@ ansible_ssh_private_key_file=$home_folder/.ssh/$private_ssh_key_file_name
  * @param formatTemplate - String format template, e.g: '%s - %s' (where the first is name, second is description)
  * @return - list of [enabled options list, descriptions of enabled options list]
  */
-static makeListOfEnabledOptions(Map optionsMap, String formatTemplate = '%s - %s') {
+static ArrayList makeListOfEnabledOptions(Map optionsMap, String formatTemplate = '%s - %s') {
     List options = []
     List descriptions = []
     optionsMap.each {
@@ -265,7 +265,7 @@ node(env.JENKINS_NODE) {
                 'CONFIGS_GIT_BRANCH'
         ] : []
         (requiredVariablesList + otherVariablesList).each {
-            pipelineVariableNotDefined = (!params.containsKey(it)) ? true : pipelineVariableNotDefined
+            pipelineVariableNotDefined = (params.containsKey(it)) ? pipelineVariableNotDefined : true
         }
 
         // Update pipeline parameters
@@ -413,12 +413,12 @@ node(env.JENKINS_NODE) {
             properties([parameters(pipelineParams)])
             outMsg(1, "Pipeline parameters was successfully injected. Select 'Build with parameters' and run again.")
             currentBuild.build().getExecutor().interrupt(Result.SUCCESS)
-            sleep(time: 3, unit: "SECONDS")
+            sleep(time: 3, unit: 'SECONDS')
         }
 
         // Check required pipeline parameters was set and correct
         Boolean errorsFound = false
-        requiredVariablesList += !env.ACTION.matches('.*access$') ? ['IP_LIST', 'SSH_LOGIN', 'SSH_PASSWORD'] : []
+        requiredVariablesList += env.ACTION.matches('.*access$') ? [] : ['IP_LIST', 'SSH_LOGIN', 'SSH_PASSWORD']
         requiredVariablesList += (env.ACTION.matches('.*(access|add_client)') &&
                 !env.USE_PIPELINE_CONSTANTS_FOR_BAREOS_SERVER_ACCESS.toBoolean()) ? [
                 'BAREOS_SERVER',
@@ -430,7 +430,7 @@ node(env.JENKINS_NODE) {
         requiredVariablesList.each {
             if (params.containsKey(it) && !env[it.toString()]?.trim()) {
                 errorsFound = true
-                outMsg(3, String.format("%s is undefined for current job run. Please set then run again.", it))
+                outMsg(3, String.format('%s is undefined for current job run. Please set then run again.', it))
             }
         }
 
@@ -466,7 +466,7 @@ node(env.JENKINS_NODE) {
             List itemsToClean = (it.matches('^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$')) ? [it] : [it] +
                     [sh(script: String.format('getent hosts %s | cut -d\' \' -f1', it), returnStdout: true).toString()]
             itemsToClean.each { host ->
-                if (host?.trim()) sh String.format('ssh-keygen -f "${HOME}/.ssh/known_hosts" -R %s', host)
+                if (host?.trim()) sh String.format('ssh-keygen -f "%s/.ssh/known_hosts" -R %s', env.HOME, host)
             }
         }
         String collectionInstallScript = String.format('%s %s %s', 'ansible-galaxy collection install',
@@ -489,7 +489,7 @@ node(env.JENKINS_NODE) {
 
             // Parsing template parameters bind
             String ansibleInventoryFirstPart = ''
-            LinkedHashMap modifiableParams = params + [
+            Map modifiableParams = params + [
                     ACTION                   : it,
                     ansible_hosts_group      : 'all',
                     ansible_group_hosts      : env.IP_LIST.replaceAll(' ', '\n'),
@@ -576,7 +576,7 @@ node(env.JENKINS_NODE) {
                 try {
                     writeFile file: 'inventory.ini', text: ansibleInventoryText
                     writeFile file: 'execute.yml', text: ansiblePlaybookText
-                    outMsg(1, String.format('Running from:\n%s\n%s', ansiblePlaybookText, ("-" * 32)))
+                    outMsg(1, String.format('Running from:\n%s\n%s', ansiblePlaybookText, ('-' * 32)))
                     wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
                         sh String.format('%s %s ansible-playbook %s %s -i %s', 'ANSIBLE_LOAD_CALLBACK_PLUGINS=1',
                                 'ANSIBLE_STDOUT_CALLBACK=yaml ANSIBLE_FORCE_COLOR=true', env.DEBUG_MODE.toBoolean() ?

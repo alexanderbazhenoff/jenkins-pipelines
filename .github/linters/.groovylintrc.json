@@ -42,6 +42,9 @@
     "BlockStartsWithBlankLine": {
       "enabled": false
     },
+    "BlockEndsWithBlankLine": {
+      "enabled": false
+    },
     "UnnecessaryReturnKeyword": "error"
   }
 }
