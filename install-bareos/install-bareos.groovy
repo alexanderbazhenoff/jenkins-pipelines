@@ -27,111 +27,111 @@ import org.codehaus.groovy.runtime.StackTraceUtils
  *  Pipeline constants to enable or disable features.
  */
 // Due to security reasons you can enable or disable various actions, Bareos components and/or copy config(s) params:
-def ActionsEnabled = [install_and_add_client: [state      : true,
-                                               description: 'install and add file daemon'],
-                      access                : [state      : true,
-                                               description: 'create user profile to access Bareos Web UI'],
-                      revoke_access         : [state      : true,
-                                               description: 'revoke user profile access to Bareos Web UI'],
-                      add_client            : [state      : true,
-                                               description: 'add already installed Bareos file daemon to director'],
-                      copy_configs          : [state      : true,
-                                               description:
-                                                       'git clone and copy configs to already installed components'],
-                      install               : [state      : true,
-                                               description: 'install Bareos components'],
-                      uninstall             : [state      : true,
-                                               description: 'uninstall Bareos components']] as LinkedHashMap
-def BareosComponentsEnabled = [fd       : [state: true, description: 'file daemon'],
-                               sd       : [state: true, description: 'storage daemon'],
-                               dir      : [state: true, description: 'director'],
-                               webui    : [state: true, description: 'Web UI'],
-                               dir_webui: [state: true, description: 'director and Web UI']] as LinkedHashMap
-def WebUiProfilesEnabled = ['webui-admin'   : [state: true],
-                            operator        : [state: true],
-                            'webui-limited' : [state: true],
-                            'webui-readonly': [state: true]] as LinkedHashMap
-def BareosCopyConfigsParams = [
+final Map ActionsEnabled =
+        [install_and_add_client: [state      : true,
+                                  description: 'install and add file daemon'],
+         access                : [state      : true,
+                                  description: 'create user profile to access Bareos Web UI'],
+         revoke_access         : [state      : true,
+                                  description: 'revoke user profile access to Bareos Web UI'],
+         add_client            : [state      : true,
+                                  description: 'add already installed Bareos file daemon to director'],
+         copy_configs          : [state      : true,
+                                  description:
+                                          'git clone and copy configs to already installed components'],
+         install               : [state      : true,
+                                  description: 'install Bareos components'],
+         uninstall             : [state      : true,
+                                  description: 'uninstall Bareos components']]
+final Map BareosComponentsEnabled = [fd       : [state: true, description: 'file daemon'],
+                                     sd       : [state: true, description: 'storage daemon'],
+                                     dir      : [state: true, description: 'director'],
+                                     webui    : [state: true, description: 'Web UI'],
+                                     dir_webui: [state: true, description: 'director and Web UI']]
+/* groovylint-disable DuplicateMapLiteral, DuplicateStringLiteral */
+final Map WebUiProfilesEnabled = ['webui-admin'   : [state: true],
+                                  operator        : [state: true],
+                                  'webui-limited' : [state: true],
+                                  'webui-readonly': [state: true]]
+final Map BareosCopyConfigsParams = [
         fd          : [:],
         sd          : [:],
         dir         : [source: '/configs', destination: '/etc', owner: 'bareos', group: 'bareos'],
         webui       : [:],
         dir_webui   : [source: '/configs', destination: '/etc', owner: 'bareos', group: 'bareos'],
         copy_configs: [source: '/configs', destination: '/etc', owner: 'bareos', group: 'bareos']
-] as LinkedHashMap
+]
+/* groovylint-enable DuplicateMapLiteral, DuplicateStringLiteral */
 
 // Git credentials ID to clone ansible (e.g. a222b01a-230b-1234-1a12345678b9):
-def GitCredentialsId = '' as String
+final String GitCredentialsId = ''
 
 /**
  *  Default pipeline parameters
  */
 // List of Bareos versions selection for pipeline parameters injection (first run):
-def ListOfBareosReleases = [21] as ArrayList
+final List ListOfBareosReleases = ['current', 'next']
 
 // List of PostgreSQL versions selection for pipeline parameters injection (first run):
-def ListOfPostgreSqlVersions = [14] as ArrayList
+final List ListOfPostgreSqlVersions = [14, 15]
 
 // List of additional Bareos packages to install for pipeline parameters injection (first run):
-def InstallAdditionalBareosPackagesDefaults = 'bareos-traymonitor' as String
+final String InstallAdditionalBareosPackagesDefaults = 'bareos-traymonitor'
 
 // Default ansible project git branch for pipeline parameters injection (first run):
-def DefaultAsnibleGitBranch = 'master' as String
+final String DefaultAsnibleGitBranch = 'master'
 
 // Default Bareos configs git URL for pipeline parameters injection (first run):
-def DefaultBareosConfigsUrl = '' as String
+final String DefaultBareosConfigsUrl = ''
 
 // Default Bareos configs git branch for pipeline parameters injection (first run). Typically this is main/master, but
 // empty by default to prevent copying on file daemon install:
-def DefaultBareosConfigsBranch = '' as String
+final String DefaultBareosConfigsBranch = ''
 
 // Folder inside of bareos configs git project to copy from:
-def BareosConfigsSouthRelativePath = '/bareos' as String
+final String BareosConfigsSouthRelativePath = '/bareos'
 
 // ssh private key filename to access Bareos server, which should be uploaded to $HOME/.ssh and added to Bareos server:
-def SshPrivateKeyFilename = 'id_rsa_bareos' as String
+final String SshPrivateKeyFilename = 'id_rsa_bareos'
 
 // Bareos server IP or DNS when USE_PIPELINE_CONSTANTS_FOR_BAREOS_SERVER_ACCESS set:
-def BareosServerHost = 'bareos.domain' as String
+final String BareosServerHost = 'bareos.domain'
 
 // Bareos server ssh user when USE_PIPELINE_CONSTANTS_FOR_BAREOS_SERVER_ACCESS set:
-def BareosServerSshLogin = 'username' as String
+final String BareosServerSshLogin = 'username'
 
 // Bareos ssh password when USE_PIPELINE_CONSTANTS_FOR_BAREOS_SERVER_ACCESS and USE_SSH_KEY_TO_CONNECT_BAREOS_SERVER
 // was set. Actually it's almost useless, because of using ssh key is easier:
-def BareosServerSshPassword = '' as String
+final String BareosServerSshPassword = ''
 
 /**
  *  Other pipeline parameters, playbook template parts, inventory files, ansible repo path, etc.
  */
 // Set Git URL, or leave them empty to install collection(s) defined in AnsibleCollectionsNames from ansible galaxy:
-def AnsibleGitRepoUrl = 'https://github.com/alexanderbazhenoff/ansible-collection-linux.git' as String
-def AnsibleCollectionName = 'alexanderbazhenoff.linux' as String
+final String AnsibleGitRepoUrl = 'https://github.com/alexanderbazhenoff/ansible-collection-linux.git'
+final String AnsibleCollectionName = 'alexanderbazhenoff.linux'
 
-// Force install ansible galaxy evry single pipeline run, otherwise will not install newer version. In most cases
+// Force install ansible galaxy every single pipeline run, otherwise will not install newer version. In most cases
 // it's true. See this thread: https://github.com/ansible/ansible/issues/65699
-// So if you wish to freez an old version, e.g. if a lot of changes in new version of ansible collection.
-def ForceInstallAnsibleCollection = true as Boolean
-
-// Set your ansible installation name from jenkins settings:
-def AnsibleInstallationName = 'home_local_bin_ansible' as String
+// So if you wish to freeze an old version, e.g. if a lot of changes in new version of ansible collection.
+final Boolean ForceInstallAnsibleCollection = true
 
 // List of nodes to execute ansible:
-def NodesToExecute = ['node-name.domain'] as ArrayList
+final List NodesToExecute = ['node-name.domain']
 
 // Ansible playbook template to execute on pipeline run. Variables inside will be templated from pipeline params.
-def AnsibleDefaultPlaybookTemplate = '''\
+final String AnsibleDefaultPlaybookTemplate = '''\
 ---
 
 - hosts: all
   become: True
   become_method: sudo
-   
+
   vars:
     additional_bareos_packages: '$INSTALL_ADDITIONAL_BAREOS_PACKAGES'
     configs_to_copy: $bareos_configs_to_copy
-    
-  tasks:    
+
+  tasks:
     - name: "install bareos pipeline | Include Bareos role to perform required action: $ACTION"
       ansible.builtin.include_role:
         name: $ansible_collection.bareos
@@ -153,10 +153,10 @@ def AnsibleDefaultPlaybookTemplate = '''\
         bareos_configs_to_copy: "{{ configs_to_copy | default([]) }}"
         debug_mode: $DEBUG_MODE
       when: $ansible_hosts_condition
-''' as String
+'''
 
 // Ansible inventory templates and it's parts with different connection options.
-def AnsibleInventoryTemplate = '''\
+final String AnsibleInventoryTemplate = '''\
 [$ansible_hosts_group]
 $ansible_group_hosts
 
@@ -164,19 +164,19 @@ $ansible_group_hosts
 ansible_connection=ssh
 ansible_ssh_common_args='-o StrictHostKeyChecking=no'
 # ansible connection $ansible_hosts_group options
-''' as String
+'''
 
-def AnsibleInventoryPasswordConnectionOptions = '''\
+final String AnsibleInventoryPasswordConnectionOptions = '''\
 ansible_become_user=root
 ansible_ssh_user=$ansible_user
 ansible_ssh_pass=$ansible_password
 ansible_become_pass=$ansible_become_password
-''' as String
+'''
 
-def AnsibleInventorySshKeyConnectionOptions = '''\
+final String AnsibleInventorySshKeyConnectionOptions = '''\
 ansible_user=$ansible_user
 ansible_ssh_private_key_file=$home_folder/.ssh/$private_ssh_key_file_name
-''' as String
+'''
 
 
 /**
@@ -188,7 +188,7 @@ ansible_ssh_private_key_file=$home_folder/.ssh/$private_ssh_key_file_name
  * @param formatTemplate - String format template, e.g: '%s - %s' (where the first is name, second is description)
  * @return - list of [enabled options list, descriptions of enabled options list]
  */
-static makeListOfEnabledOptions(Map optionsMap, String formatTemplate = '%s - %s') {
+static List makeListOfEnabledOptions(Map optionsMap, String formatTemplate = '%s - %s') {
     List options = []
     List descriptions = []
     optionsMap.each {
@@ -198,7 +198,7 @@ static makeListOfEnabledOptions(Map optionsMap, String formatTemplate = '%s - %s
                 descriptions.add(String.format(formatTemplate, it.key, it.value.description))
         }
     }
-    return [options, descriptions]
+    [options, descriptions]
 }
 
 /**
@@ -208,7 +208,7 @@ static makeListOfEnabledOptions(Map optionsMap, String formatTemplate = '%s - %s
  * @param text - text to output
  */
 def outMsg(Integer eventNum, String text) {
-    wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
+    wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) { // groovylint-disable-line
         List eventTypes = [
                 '\033[0;34mDEBUG\033[0m',
                 '\033[0;32mINFO\033[0m',
@@ -224,15 +224,15 @@ node(env.JENKINS_NODE) {
 
         // Pipeline parameters check
         Boolean pipelineVariableNotDefined = false
-        ArrayList requiredVariablesList = ['ACTION',
-                                           'BAREOS_COMPONENTS',
-                                           'ANSIBLE_GIT_BRANCH',
-                                           'JENKINS_NODE']
-        ArrayList otherVariablesList = ['SSH_SUDO_PASSWORD',
-                                        'ANSIBLE_GIT_BRANCH',
-                                        'BAREOS_RELEASE',
-                                        'OVERRIDE_LINUX_DISTRO_VERSION',
-                                        'DEBUG_MODE']
+        List requiredVariablesList = ['ACTION',
+                                      'BAREOS_COMPONENTS',
+                                      'ANSIBLE_GIT_BRANCH',
+                                      'JENKINS_NODE']
+        List otherVariablesList = ['SSH_SUDO_PASSWORD',
+                                   'ANSIBLE_GIT_BRANCH',
+                                   'BAREOS_RELEASE',
+                                   'OVERRIDE_LINUX_DISTRO_VERSION',
+                                   'DEBUG_MODE']
         otherVariablesList += (ActionsEnabled.install_and_add_client.state || ActionsEnabled.add_client.state) ? [
                 'FILE_DAEMON_NAME',
                 'BAREOS_SERVER_SSH_PASSWORD',
@@ -265,7 +265,7 @@ node(env.JENKINS_NODE) {
                 'CONFIGS_GIT_BRANCH'
         ] : []
         (requiredVariablesList + otherVariablesList).each {
-            pipelineVariableNotDefined = (!params.containsKey(it)) ? true : pipelineVariableNotDefined
+            pipelineVariableNotDefined = (params.containsKey(it)) ? pipelineVariableNotDefined : true
         }
 
         // Update pipeline parameters
@@ -277,7 +277,7 @@ node(env.JENKINS_NODE) {
                     BareosComponentsEnabled, '<b>%s</b> - %s') as ArrayList
             def (List webuiProfilesChoices, List __) = makeListOfEnabledOptions(WebUiProfilesEnabled) as ArrayList
 
-            ArrayList pipelineParams = [
+            List pipelineParams = [
                     string(name: 'IP_LIST',
                             description:
                                     'Space separated IP or DNS list for install/uninstall components and copy configs.',
@@ -309,7 +309,7 @@ node(env.JENKINS_NODE) {
                                     bareosComponentsDescriptions.join(',<br>')),
                             choices: bareosComponentsChoices),
                     choice(name: 'BAREOS_RELEASE',
-                            description: 'Bareos version.<br><br><br><br>',
+                            description: 'Bareos release.<br><br><br><br>',
                             choices: ListOfBareosReleases),
                     string(name: 'OVERRIDE_LINUX_DISTRO_VERSION',
                             description: 'Override ansible distribution major version when there\'s no Bareos repo',
@@ -412,13 +412,13 @@ node(env.JENKINS_NODE) {
             ]
             properties([parameters(pipelineParams)])
             outMsg(1, "Pipeline parameters was successfully injected. Select 'Build with parameters' and run again.")
-            currentBuild.build().getExecutor().interrupt(Result.SUCCESS)
-            sleep(time: 3, unit: "SECONDS")
+            currentBuild.build().getExecutor().interrupt(Result.SUCCESS) // groovylint-disable-line
+            sleep(time: 3, unit: 'SECONDS')
         }
 
         // Check required pipeline parameters was set and correct
         Boolean errorsFound = false
-        requiredVariablesList += !env.ACTION.matches('.*access$') ? ['IP_LIST', 'SSH_LOGIN', 'SSH_PASSWORD'] : []
+        requiredVariablesList += env.ACTION.matches('.*access$') ? [] : ['IP_LIST', 'SSH_LOGIN', 'SSH_PASSWORD']
         requiredVariablesList += (env.ACTION.matches('.*(access|add_client)') &&
                 !env.USE_PIPELINE_CONSTANTS_FOR_BAREOS_SERVER_ACCESS.toBoolean()) ? [
                 'BAREOS_SERVER',
@@ -430,7 +430,7 @@ node(env.JENKINS_NODE) {
         requiredVariablesList.each {
             if (params.containsKey(it) && !env[it.toString()]?.trim()) {
                 errorsFound = true
-                outMsg(3, String.format("%s is undefined for current job run. Please set then run again.", it))
+                outMsg(3, String.format('%s is undefined for current job run. Please set then run again.', it))
             }
         }
 
@@ -460,14 +460,13 @@ node(env.JENKINS_NODE) {
         currentBuild.displayName = String.format('%s__%s--#%s', env.ACTION, bareosActionSubject, env.BUILD_NUMBER)
 
         // Cleanup ssh keys, install ansible collection
-        ArrayList hostsToClean = env.IP_LIST.trim().split(' ').toList() + ((params.containsKey(BAREOS_SERVER) &&
+        List hostsToClean = env.IP_LIST.trim().split(' ').toList() + ((params.containsKey(BAREOS_SERVER) &&
                 !env.USE_SSH_KEY_TO_CONNECT_BAREOS_SERVER.toBoolean()) ? [env.BAREOS_SERVER] : [])
         hostsToClean.findAll { it }.each {
-            ArrayList itemsToClean = (it.matches('^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$')) ? [it] :
-                    [it] + [sh(script: String.format('getent hosts %s | cut -d\' \' -f1', it), returnStdout: true)
-                                    .toString()]
+            List itemsToClean = (it.matches('^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$')) ? [it] : [it] +
+                    [sh(script: String.format('getent hosts %s | cut -d\' \' -f1', it), returnStdout: true).toString()]
             itemsToClean.each { host ->
-                if (host?.trim()) sh String.format('ssh-keygen -f "${HOME}/.ssh/known_hosts" -R %s', host)
+                if (host?.trim()) sh String.format('ssh-keygen -f "%s/.ssh/known_hosts" -R %s', env.HOME, host)
             }
         }
         String collectionInstallScript = String.format('%s %s %s', 'ansible-galaxy collection install',
@@ -484,13 +483,13 @@ node(env.JENKINS_NODE) {
             }
         }
 
-        ArrayList ansibleActions = (env.ACTION == 'install_and_add_client') ? ['install', 'add_client'] :
-                env.ACTION.split().toList()
+        List ansibleActions = (env.ACTION == 'install_and_add_client') ? ['install', 'add_client'] : env.ACTION.split()
+                .toList()
         ansibleActions.each {
 
             // Parsing template parameters bind
             String ansibleInventoryFirstPart = ''
-            LinkedHashMap modifiableParams = params + [
+            Map modifiableParams = params + [
                     ACTION                   : it,
                     ansible_hosts_group      : 'all',
                     ansible_group_hosts      : env.IP_LIST.replaceAll(' ', '\n'),
@@ -564,7 +563,7 @@ node(env.JENKINS_NODE) {
             // Templating playbook and inventory, run ansible
             String ansibleInventoryText = new StreamingTemplateEngine()
                     .createTemplate(ansibleInventoryFirstPart + ansibleInventoryOptions).make(modifiableParams)
-            ArrayList playbookVariablesMention = AnsibleDefaultPlaybookTemplate.findAll('\\$[0-9a-zA-Z_]+').collect {
+            List playbookVariablesMention = AnsibleDefaultPlaybookTemplate.findAll('\\$[0-9a-zA-Z_]+').collect {
                 it.replace('$', '')
             }
             Map ansibleVariablesBinding = playbookVariablesMention.collectEntries { [it, ''] } + modifiableParams
@@ -577,19 +576,16 @@ node(env.JENKINS_NODE) {
                 try {
                     writeFile file: 'inventory.ini', text: ansibleInventoryText
                     writeFile file: 'execute.yml', text: ansiblePlaybookText
-                    outMsg(1, String.format('Running from:\n%s\n%s', ansiblePlaybookText, ("-" * 32)))
+                    outMsg(1, String.format('Running from:\n%s\n%s', ansiblePlaybookText, ('-' * 32)))
                     wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
-                        ansiblePlaybook(
-                                playbook: 'execute.yml',
-                                inventory: 'inventory.ini',
-                                colorized: true,
-                                extras: env.DEBUG_MODE.toBoolean() ? '-vvvv' : '',
-                                installation: AnsibleInstallationName)
+                        sh String.format('%s %s ansible-playbook %s %s -i %s', 'ANSIBLE_LOAD_CALLBACK_PLUGINS=1',
+                                'ANSIBLE_STDOUT_CALLBACK=yaml ANSIBLE_FORCE_COLOR=true', env.DEBUG_MODE.toBoolean() ?
+                                '-vvvv' : '', 'execute.yml', 'inventory.ini')
                     }
                 } catch (Exception error) {
                     outMsg(3, String.format('Running ansible failed: %s', String.format('Line %s: %s',
                             error.stackTrace.head().lineNumber, StackTraceUtils.sanitize(error))))
-                    sleep(time: 2, unit: "SECONDS")
+                    sleep(time: 2, unit: 'SECONDS')
                     currentBuild.result = 'FAILURE'
                 }
             }

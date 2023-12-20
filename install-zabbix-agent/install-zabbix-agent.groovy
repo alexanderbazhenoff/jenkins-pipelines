@@ -22,25 +22,22 @@ import hudson.model.Result
 
 
 // Repo URL of 'alexanderbazhenoff.linux' ansible collection repo.
-def AnsibleGitRepoUrl = 'https://github.com/alexanderbazhenoff/ansible-collection-linux.git' as String
+final String AnsibleGitRepoUrl = 'https://github.com/alexanderbazhenoff/ansible-collection-linux.git'
 
 // Repo branch.
-def AnsibleGitDefaultBranch = 'main' as String
+final String AnsibleGitDefaultBranch = 'main'
 // If you wish to clone from non-public repo, or use ssh cloning. E.g: 'a222b01a-230b-1234-1a12345678b9'.
-def AnsibleGitCredentialsId = '' as String
+final String AnsibleGitCredentialsId = ''
 
 // Set your ansible installation name from jenkins settings.
-def AnsibleInstallationName = 'home_local_bin_ansible' as String
+final List NodesToExecute = ['domain.com']
 
-// Set your ansible installation name from jenkins settings.
-def NodesToExecute = ['domain.com'] as ArrayList
-
-// List of Zabbix version to select in ZABBIX_AGENT_VERSION pipeline parameter.
-def ZabbixAgentVersions = ['5.0', '4.0'] as ArrayList
+// List of Zabbix version to select in ZABBIX_AGENT_RELEASE pipeline parameter.
+final List ZabbixAgentVersions = ['5.0', '5,5', '6.0', '4.0']
 
 
 // Playbook template, inventory files and ansible repo path.
-def AnsibleDefaultPlaybookTemplate = '''\
+final String AnsibleDefaultPlaybookTemplate = '''\
 ---
 - hosts: all
   become: true
@@ -50,23 +47,23 @@ def AnsibleDefaultPlaybookTemplate = '''\
       ansible.builtin.include_role:
         name: alexanderbazhenoff.linux.zabbix_agent
       vars:
-        agent_version: $agent_version
+        zabbix_release: $zabbix_release
         install_v2_agent: $install_v2_agent
         customize_agent: $network_bridge_name
         customize_agent_only: $customize_agent_only
         clean_install: $clean_install
-        force_install_agent_v1: $force_install_agent_v1       
-''' as String
+        force_install_agent_v1: $force_install_agent_v1
+'''
 
-def AnsibleServersPassivePlaybookTemplate = '''\
+final String AnsibleServersPassivePlaybookTemplate = '''\
   zabbix_servers_passive: $servers_passive
-''' as String
+'''
 
-def AnsibleServersActivePlaybookTemplate = '''\
+final String AnsibleServersActivePlaybookTemplate = '''\
   zabbix_servers_passive: $servers_active
-''' as String
+'''
 
-def AnsibleInventoryTemplate = '''\
+final String AnsibleInventoryTemplate = '''\
 [all]
 $hosts_list
 [all:vars]
@@ -76,7 +73,7 @@ ansible_ssh_common_args='-o StrictHostKeyChecking=no\'
 ansible_ssh_user=$ssh_user
 ansible_ssh_pass=$ssh_password
 ansible_become_pass=$ssh_become_password
-''' as String
+'''
 
 
 /**
@@ -85,7 +82,7 @@ ansible_become_pass=$ssh_become_password
  * @param error - Exception error.
  */
 static String readableError(Throwable error) {
-    return String.format('Line %s: %s', error.stackTrace.head().lineNumber, StackTraceUtils.sanitize(error))
+    String.format('Line %s: %s', error.stackTrace.head().lineNumber, StackTraceUtils.sanitize(error))
 }
 
 /**
@@ -95,7 +92,7 @@ static String readableError(Throwable error) {
  * @param text - text to output
  */
 def outMsg(Integer eventNum, String text) {
-    wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
+    wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) { // groovylint-disable-line
         List eventTypes = [
                 '\033[0;34mDEBUG\033[0m',
                 '\033[0;32mINFO\033[0m',
@@ -119,40 +116,34 @@ def outMsg(Integer eventNum, String text) {
  *                             ansible-galaxy directory layout standards. If variable wasn't pass (empty) the roles
  *                             will be called an old-way from a playbook placed in 'roles/execute.yml'. It's only for
  *                             the backward capability.
- * @param ansibleInstallation - name of the ansible installation predefined in jenkins Global Configuration Tool.
- *                              Check https://issues.jenkins.io/browse/JENKINS-67209 for details.
  * @return - success (true when ok)
  */
 Boolean runAnsible(String ansiblePlaybookText, String ansibleInventoryText, String ansibleGitlabUrl,
-                   String ansibleGitlabBranch, String gitCredentialsID, String ansibleExtras = '',
-                   String ansibleInstallation = '') {
+                   String ansibleGitlabBranch, String gitCredentialsID, String ansibleExtras = '') {
     Boolean ansibleExecution = true
     try {
         dir('ansible') {
             sh 'sudo rm -rf *'
             git branch: ansibleGitlabBranch, credentialsId: gitCredentialsID, url: ansibleGitlabUrl
-            if (sh(returnStdout: true, returnStatus: true, script: '''ansible-galaxy collection build 
+            if (sh(returnStdout: true, returnStatus: true, script: '''ansible-galaxy collection build
                         ansible-galaxy collection install $(ls -1 | grep ".tar.gz") -f''') != 0) {
                 outMsg(3, 'There was an error building and installing ansible collection.')
                 sh 'exit 1'
             }
             writeFile file: 'inventory.ini', text: ansibleInventoryText
             writeFile file: 'execute.yml', text: ansiblePlaybookText
-            outMsg(1, String.format('Running from:\n%s\n%s', ansiblePlaybookText, ("-" * 32)))
-            ansiblePlaybook(
-                    playbook: 'execute.yml',
-                    inventory: 'inventory.ini',
-                    colorized: true,
-                    extras: ansibleExtras,
-                    installation: ansibleInstallation)
+            outMsg(1, String.format('Running from:\n%s\n%s', ansiblePlaybookText, ('-' * 32)))
+            sh String.format('%s %s ansible-playbook %s -i %s %s', 'ANSIBLE_LOAD_CALLBACK_PLUGINS=1',
+                    'ANSIBLE_STDOUT_CALLBACK=yaml ANSIBLE_FORCE_COLOR=true', 'execute.yml', 'inventory.ini',
+                    ansibleExtras)
         }
-    } catch (Exception err) {
+    } catch (Exception err) { // groovylint-disable-line
         outMsg(3, String.format('Running ansible failed: %s', readableError(err)))
         ansibleExecution = false
     } finally {
         sh 'sudo rm -f ansible/inventory.ini'
-        return ansibleExecution
     }
+    ansibleExecution
 }
 
 
@@ -162,24 +153,24 @@ node(env.JENKINS_NODE) {
         // Pipeline parameters check and inject (first run)
         Map envVars = [:]
         Boolean pipelineVariableNotDefined = false
-        env.getEnvironment().each { name, value -> envVars.put(name, value) }
-        ArrayList requiredVariablesList = ['IP_LIST',
-                                           'SSH_LOGIN',
-                                           'SSH_PASSWORD',
-                                           'ZABBIX_AGENT_VERSION',
-                                           'ANSIBLE_GIT_URL',
-                                           'ANSIBLE_GIT_BRANCH']
-        ArrayList otherVariablesList = ['SSH_SUDO_PASSWORD',
-                                        'INSTALL_AGENT_V2',
-                                        'CUSTOMIZE_AGENT',
-                                        'CUSTOMIZE_AGENT_ONLY',
-                                        'CLEAN_INSTALL',
-                                        'CUSTOM_PASSIVE_SERVERS_IPS',
-                                        'CUSTOM_ACTIVE_SERVERS_IPS',
-                                        'JENKINS_NODE',
-                                        'DEBUG_MODE']
+        env.getEnvironment().each { name, value -> envVars.put(name, value) } // groovylint-disable-line
+        List requiredVariablesList = ['IP_LIST',
+                                      'SSH_LOGIN',
+                                      'SSH_PASSWORD',
+                                      'ZABBIX_AGENT_RELEASE',
+                                      'ANSIBLE_GIT_URL',
+                                      'ANSIBLE_GIT_BRANCH']
+        List otherVariablesList = ['SSH_SUDO_PASSWORD',
+                                   'INSTALL_AGENT_V2',
+                                   'CUSTOMIZE_AGENT',
+                                   'CUSTOMIZE_AGENT_ONLY',
+                                   'CLEAN_INSTALL',
+                                   'CUSTOM_PASSIVE_SERVERS_IPS',
+                                   'CUSTOM_ACTIVE_SERVERS_IPS',
+                                   'JENKINS_NODE',
+                                   'DEBUG_MODE']
         (requiredVariablesList + otherVariablesList).each {
-            pipelineVariableNotDefined = (!envVars.containsKey(it)) ? true : pipelineVariableNotDefined
+            pipelineVariableNotDefined = (envVars.containsKey(it)) ? pipelineVariableNotDefined : true
         }
         if (pipelineVariableNotDefined) {
             properties([
@@ -203,9 +194,9 @@ node(env.JENKINS_NODE) {
                                      description: 'Configure Zabbix agent config for service discovery.',
                                      defaultValue: true),
                              booleanParam(name: 'CUSTOMIZE_AGENT_ONLY',
-                                     description: 'Configure Zabbix agent config for service discovery without install.',
+                                     description: 'Configure Zabbix agent for service discovery without install.',
                                      defaultValue: false),
-                             choice(name: 'ZABBIX_AGENT_VERSION',
+                             choice(name: 'ZABBIX_AGENT_RELEASE',
                                      description: 'Zabbix agent version.',
                                      choices: ZabbixAgentVersions),
                              booleanParam(name: 'CLEAN_INSTALL',
@@ -241,8 +232,8 @@ node(env.JENKINS_NODE) {
             ])
             outMsg(1,
                     "Pipeline parameters was successfully injected. Select 'Build with parameters' and run again.")
-            currentBuild.build().getExecutor().interrupt(Result.SUCCESS)
-            sleep(time: 3, unit: "SECONDS")
+            currentBuild.build().getExecutor().interrupt(Result.SUCCESS) // groovylint-disable-line
+            sleep(time: 3, unit: 'SECONDS')
         }
 
         // Check and handling required pipeline parameters
@@ -250,7 +241,7 @@ node(env.JENKINS_NODE) {
         requiredVariablesList.each {
             if (params.containsKey(it) && !env[it.toString()]?.trim()) {
                 errorsFound = true
-                outMsg(3, String.format("%s is undefined for current job run. Please set then run again.", it))
+                outMsg(3, String.format('%s is undefined for current job run. Please set then run again.', it))
             }
         }
         if (errorsFound)
@@ -267,8 +258,7 @@ node(env.JENKINS_NODE) {
                 network_bridge_name   : env.CUSTOMIZE_AGENT,
                 customize_agent_only  : env.CUSTOMIZE_AGENT_ONLY,
                 clean_install         : env.CLEAN_INSTALL,
-                force_install_agent_v1: !(env.INSTALL_AGENT_V2.toBoolean()).toString(),
-                agent_version         : env.ZABBIX_AGENT_VERSION
+                zabbix_release        : env.ZABBIX_AGENT_RELEASE
         ]
         if (env.CUSTOM_PASSIVE_SERVERS_IPS?.trim()) {
             println String.format('Found custom active zabbix server(s): %s', env.CUSTOM_PASSIVE_SERVERS_IPS)
@@ -281,7 +271,7 @@ node(env.JENKINS_NODE) {
             ansiblePlaybookVariableBinding += [servers_active: env.CUSTOM_ACTIVE_SERVERS_IPS]
         }
         String ansiblePlaybookText = new StreamingTemplateEngine().createTemplate(AnsibleDefaultPlaybookTemplate)
-                .make(ansiblePlaybookVariableBinding).toString()
+                .make(ansiblePlaybookVariableBinding)
         Map ansibleInventoryVariableBinding = [
                 hosts_list         : env.IP_LIST.replaceAll(' ', '\n'),
                 ssh_user           : env.SSH_LOGIN,
@@ -289,23 +279,24 @@ node(env.JENKINS_NODE) {
                 ssh_become_password: env.SSH_SUDO_PASSWORD
         ]
         String ansibleInventoryText = new StreamingTemplateEngine().createTemplate(AnsibleInventoryTemplate)
-                .make(ansibleInventoryVariableBinding).toString()
+                .make(ansibleInventoryVariableBinding)
 
         // Clean SSH hosts fingerprints from ~/.ssh/known_hosts
         env.IP_LIST.split(' ').toList().each {
-            sh String.format('ssh-keygen -f "${HOME}/.ssh/known_hosts" -R %s', it)
+            sh String.format('ssh-keygen -f "%s/.ssh/known_hosts" -R %s', env.HOME, it)
+            /* groovylint-disable UnnecessaryToString */
             String ipAddress = sh(script: String.format('getent hosts %s | cut -d\' \' -f1', it), returnStdout: true)
                     .toString()
+            /* groovylint-enable UnnecessaryToString */
             if (ipAddress?.trim())
-                sh String.format('ssh-keygen -f "${HOME}/.ssh/known_hosts" -R %s', ipAddress)
+                sh String.format('ssh-keygen -f "%s/.ssh/known_hosts" -R %s', env.HOME, ipAddress)
         }
 
         // Run ansible role
         String ansibleVerbose = (env.DEBUG_MODE.toBoolean()) ? '-vvvv' : ''
-        String ansibleRunArgs = String.format('%s %s', ansibleCheckMode, ansibleVerbose)
         wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
             if (!runAnsible(ansiblePlaybookText, ansibleInventoryText, env.ANSIBLE_GIT_URL, env.ANSIBLE_GIT_BRANCH,
-                    AnsibleGitCredentialsId, ansibleRunArgs, AnsibleInstallationName))
+                    AnsibleGitCredentialsId, ansibleVerbose))
                 error 'Ansible playbook execution failed.'
         }
 
