@@ -117,7 +117,7 @@ node(env.JENKINS_NODE) {
                             script: String.format('set -e; cd %s; ls -lha /go; go test %s',
                                     env.GIT_PROJECT_PATH, appTestFlags)) != 0)
                         error String.format(
-                                '%s\nTesting failed, other stages will be skiped due of pipeline termination.',
+                                '%s\nTesting failed, other stages will be skipped due of pipeline termination.',
                                 ('-' * 90))
                 }
                 println String.format('%s\nTesting ok, building and creating container with app...', ('-' * 90))
