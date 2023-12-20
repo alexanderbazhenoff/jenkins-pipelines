@@ -82,7 +82,7 @@ ansible_become_pass=$ssh_become_password
  * @param error - Exception error.
  */
 static String readableError(Throwable error) {
-    return String.format('Line %s: %s', error.stackTrace.head().lineNumber, StackTraceUtils.sanitize(error))
+    String.format('Line %s: %s', error.stackTrace.head().lineNumber, StackTraceUtils.sanitize(error))
 }
 
 /**
