@@ -105,7 +105,7 @@ node(env.JENKINS_NODE) {
             writeFile file: 'Dockerfile', text: String.format(DockerFileTestText, DockerFileHeadText)
         }
         println String.format('%s\nBuilding test container...', ('-' * 90))
-        def testImage = docker.build(String.format('test-image:%s', env.BUILD_ID), String.format('%s/test-image',
+        Object testImage = docker.build(String.format('test-image:%s', env.BUILD_ID), String.format('%s/test-image',
                 env.WORKSPACE))
         testImage.inside {
             dir('sources') {
@@ -156,7 +156,7 @@ node(env.JENKINS_NODE) {
                 String prodImageIdScript = String.format(
                         "docker ps --format '{{.ID}} {{.Image}}' | grep 'prod-image:%s' | awk '{print \$1}'",
                         env.BUILD_ID)
-                String prodImageId = sh(returnStdout: true, script: prodImageIdScript).replace("sha256:", "")
+                String prodImageId = sh(returnStdout: true, script: prodImageIdScript).replace('sha256:', '')
                 println String.format('Container ID to export: %s', prodImageId)
                 dir('export') {
                     sh String.format('''rm -rf *; docker export --output="container.tar" %s''', prodImageId)

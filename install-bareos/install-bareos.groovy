@@ -412,7 +412,7 @@ node(env.JENKINS_NODE) {
             ]
             properties([parameters(pipelineParams)])
             outMsg(1, "Pipeline parameters was successfully injected. Select 'Build with parameters' and run again.")
-            currentBuild.build().getExecutor().interrupt(Result.SUCCESS)
+            currentBuild.build().getExecutor().interrupt(Result.SUCCESS) // groovylint-disable-line
             sleep(time: 3, unit: 'SECONDS')
         }
 

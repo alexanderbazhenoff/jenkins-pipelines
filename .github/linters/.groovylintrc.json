@@ -45,6 +45,9 @@
     "BlockEndsWithBlankLine": {
       "enabled": false
     },
+    "DuplicateStringLiteral": {
+      "enabled": false
+    },
     "UnnecessaryReturnKeyword": "error"
   }
 }
