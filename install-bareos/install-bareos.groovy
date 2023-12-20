@@ -48,7 +48,7 @@ final Map BareosComponentsEnabled = [fd       : [state: true, description: 'file
                                      dir      : [state: true, description: 'director'],
                                      webui    : [state: true, description: 'Web UI'],
                                      dir_webui: [state: true, description: 'director and Web UI']]
-/* groovylint-disable DuplicateMapLiteral DuplicateStringLiteral */
+/* groovylint-disable DuplicateMapLiteral, DuplicateStringLiteral */
 final Map WebUiProfilesEnabled = ['webui-admin'   : [state: true],
                                   operator        : [state: true],
                                   'webui-limited' : [state: true],
@@ -61,7 +61,7 @@ final Map BareosCopyConfigsParams = [
         dir_webui   : [source: '/configs', destination: '/etc', owner: 'bareos', group: 'bareos'],
         copy_configs: [source: '/configs', destination: '/etc', owner: 'bareos', group: 'bareos']
 ]
-/* groovylint-enable DuplicateMapLiteral DuplicateStringLiteral */
+/* groovylint-enable DuplicateMapLiteral, DuplicateStringLiteral */
 
 // Git credentials ID to clone ansible (e.g. a222b01a-230b-1234-1a12345678b9):
 final String GitCredentialsId = ''
@@ -188,7 +188,7 @@ ansible_ssh_private_key_file=$home_folder/.ssh/$private_ssh_key_file_name
  * @param formatTemplate - String format template, e.g: '%s - %s' (where the first is name, second is description)
  * @return - list of [enabled options list, descriptions of enabled options list]
  */
-static ArrayList makeListOfEnabledOptions(Map optionsMap, String formatTemplate = '%s - %s') {
+static List makeListOfEnabledOptions(Map optionsMap, String formatTemplate = '%s - %s') {
     List options = []
     List descriptions = []
     optionsMap.each {

@@ -1,5 +1,5 @@
 ---
-# Based on ansible-lint config
+
 extends: default
 ignore: |
   README.md
@@ -35,6 +35,6 @@ rules:
   new-lines:
     type: unix
   trailing-spaces: enable
-  truthy:  # yamllint disable-line rule:truthy
-    allowed-values: ['true', 'false']
-    check-keys: True
+  truthy:
+    allowed-values: ['true', 'false']  # yamllint disable-line rule:truthy
+    check-keys: true
