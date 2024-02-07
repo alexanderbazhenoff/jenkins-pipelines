@@ -52,7 +52,6 @@ final String AnsibleDefaultPlaybookTemplate = '''\
         customize_agent: $network_bridge_name
         customize_agent_only: $customize_agent_only
         clean_install: $clean_install
-        force_install_agent_v1: $force_install_agent_v1
 '''
 
 final String AnsibleServersPassivePlaybookTemplate = '''\

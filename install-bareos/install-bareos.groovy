@@ -79,7 +79,7 @@ final List ListOfPostgreSqlVersions = [14, 15]
 final String InstallAdditionalBareosPackagesDefaults = 'bareos-traymonitor'
 
 // Default ansible project git branch for pipeline parameters injection (first run):
-final String DefaultAsnibleGitBranch = 'master'
+final String DefaultAsnibleGitBranch = 'main'
 
 // Default Bareos configs git URL for pipeline parameters injection (first run):
 final String DefaultBareosConfigsUrl = ''
