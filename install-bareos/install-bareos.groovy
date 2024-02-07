@@ -155,7 +155,7 @@ final String AnsibleDefaultPlaybookTemplate = '''\
       when: $ansible_hosts_condition
 '''
 
-// Ansible inventory templates and it's parts with different connection options.
+/** Ansible inventory templates and it's parts with different connection options. */
 final String AnsibleInventoryTemplate = '''\
 [$ansible_hosts_group]
 $ansible_group_hosts
@@ -207,6 +207,7 @@ static List makeListOfEnabledOptions(Map optionsMap, String formatTemplate = '%s
  * @param eventNum - event type: debug, info, etc...
  * @param text - text to output
  */
+// groovylint-disable-next-line MethodReturnTypeRequired, NoDef
 def outMsg(Integer eventNum, String text) {
     wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) { // groovylint-disable-line
         List eventTypes = [
@@ -221,7 +222,6 @@ def outMsg(Integer eventNum, String text) {
 
 node(env.JENKINS_NODE) {
     wrap([$class: 'TimestamperBuildWrapper']) {
-
         // Pipeline parameters check
         Boolean pipelineVariableNotDefined = false
         List requiredVariablesList = ['ACTION',
@@ -268,7 +268,7 @@ node(env.JENKINS_NODE) {
             pipelineVariableNotDefined = (params.containsKey(it)) ? pipelineVariableNotDefined : true
         }
 
-        // Update pipeline parameters
+        /** Update pipeline parameters */
         if (pipelineVariableNotDefined) {
             currentBuild.displayName = String.format('pipeline_parameters_update--#%s', env.BUILD_NUMBER)
             def (List bareosActionsChoices, List bareosActionsDescriptions) = makeListOfEnabledOptions(ActionsEnabled,
@@ -412,11 +412,11 @@ node(env.JENKINS_NODE) {
             ]
             properties([parameters(pipelineParams)])
             outMsg(1, "Pipeline parameters was successfully injected. Select 'Build with parameters' and run again.")
-            currentBuild.build().getExecutor().interrupt(Result.SUCCESS) // groovylint-disable-line
+            currentBuild.build().getExecutor().interrupt(Result.SUCCESS) // groovylint-disable-line UnnecessaryGetter
             sleep(time: 3, unit: 'SECONDS')
         }
 
-        // Check required pipeline parameters was set and correct
+        /** Check required pipeline parameters was set and correct */
         Boolean errorsFound = false
         requiredVariablesList += env.ACTION.matches('.*access$') ? [] : ['IP_LIST', 'SSH_LOGIN', 'SSH_PASSWORD']
         requiredVariablesList += (env.ACTION.matches('.*(access|add_client)') &&
@@ -450,7 +450,7 @@ node(env.JENKINS_NODE) {
         if (errorsFound)
             error 'Missing or incorrect pipeline parameter(s).'
 
-        // Handling Build display name
+        /** Handling Build display name */
         String bareosServer = String.format('_to_%s', (env.USE_PIPELINE_CONSTANTS_FOR_BAREOS_SERVER_ACCESS
                 .toBoolean()) ? BareosServerHost : env.BAREOS_SERVER)
         String bareosActionSubject = String.format('%s%s%s',
@@ -459,8 +459,8 @@ node(env.JENKINS_NODE) {
                 (env.ACTION.matches('(.+)?add_client$') ? bareosServer : ''))
         currentBuild.displayName = String.format('%s__%s--#%s', env.ACTION, bareosActionSubject, env.BUILD_NUMBER)
 
-        // Cleanup ssh keys, install ansible collection
-        List hostsToClean = env.IP_LIST.trim().split(' ').toList() + ((params.containsKey(BAREOS_SERVER) &&
+        /** Cleanup ssh keys, install ansible collection */
+        List hostsToClean = env.IP_LIST.trim().tokenize() + ((params.containsKey(BAREOS_SERVER) &&
                 !env.USE_SSH_KEY_TO_CONNECT_BAREOS_SERVER.toBoolean()) ? [env.BAREOS_SERVER] : [])
         hostsToClean.findAll { it }.each {
             List itemsToClean = (it.matches('^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$')) ? [it] : [it] +
@@ -483,11 +483,10 @@ node(env.JENKINS_NODE) {
             }
         }
 
-        List ansibleActions = (env.ACTION == 'install_and_add_client') ? ['install', 'add_client'] : env.ACTION.split()
-                .toList()
+        List ansibleActions = (env.ACTION == 'install_and_add_client') ? ['install', 'add_client'] : env.ACTION
+                .tokenize()
         ansibleActions.each {
-
-            // Parsing template parameters bind
+            /** Parsing template parameters bind */
             String ansibleInventoryFirstPart = ''
             Map modifiableParams = params + [
                     ACTION                   : it,
@@ -537,7 +536,7 @@ node(env.JENKINS_NODE) {
                         AnsibleInventoryPasswordConnectionOptions)
             }
 
-            // Copy Bareos configs
+            /** Copy Bareos configs */
             if ((BareosCopyConfigsParams[modifiableParams.ACTION] && modifiableParams.ACTION == 'copy_configs') ||
                     (BareosCopyConfigsParams[modifiableParams.BAREOS_COMPONENTS] &&
                             modifiableParams.ACTION =~ 'install'))
@@ -560,9 +559,10 @@ node(env.JENKINS_NODE) {
                             'CONFIGS_GIT_URL and/or CONFIGS_GIT_BRANCH wasn\'t set.'))
                 }
 
-            // Templating playbook and inventory, run ansible
+            /** Templating playbook and inventory, run ansible */
             String ansibleInventoryText = new StreamingTemplateEngine()
                     .createTemplate(ansibleInventoryFirstPart + ansibleInventoryOptions).make(modifiableParams)
+            // groovylint-disable-next-line UnnecessaryCollectCall
             List playbookVariablesMention = AnsibleDefaultPlaybookTemplate.findAll('\\$[0-9a-zA-Z_]+').collect {
                 it.replace('$', '')
             }
@@ -590,7 +590,6 @@ node(env.JENKINS_NODE) {
                 }
             }
         }
-
     }
 }
 
