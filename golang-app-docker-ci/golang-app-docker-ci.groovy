@@ -29,7 +29,7 @@ final String DockerFileHeadText = '''\
 FROM alpine:latest
 EXPOSE 80:8080
 '''
-/** groovylint-disable GStringExpressionWithinString */
+// groovylint-disable GStringExpressionWithinString
 final String DockerFileTestText = '''\
 %s
 RUN apk update && apk add --no-cache bash git make musl-dev go

@@ -93,7 +93,7 @@ static String readableError(Throwable error) {
  */
 // groovylint-disable-next-line MethodReturnTypeRequired, NoDef
 def outMsg(Integer eventNum, String text) {
-    wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
+    wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {  // groovylint-disable-line DuplicateMapLiteral
         List eventTypes = [
                 '\033[0;34mDEBUG\033[0m',
                 '\033[0;32mINFO\033[0m',
