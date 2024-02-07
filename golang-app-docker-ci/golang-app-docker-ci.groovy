@@ -18,18 +18,18 @@ import hudson.model.Result
 import groovy.text.StreamingTemplateEngine
 
 
-// Pipeline parameters defaults
+/** Pipeline parameters defaults */
 final List NodesToExecute = ['domain.com']
 final String DefaultGitUrl = 'https://github.com/golang/example.git'
 final String DefaultGitProjectPath = 'example/outyet'
 final String DefaultPostTestShellCommand = 'curl http://127.0.0.1:80'
 
-// Dockerfiles templates
+/** Dockerfiles templates */
 final String DockerFileHeadText = '''\
 FROM alpine:latest
 EXPOSE 80:8080
 '''
-/* groovylint-disable GStringExpressionWithinString */
+/** groovylint-disable GStringExpressionWithinString */
 final String DockerFileTestText = '''\
 %s
 RUN apk update && apk add --no-cache bash git make musl-dev go
@@ -39,7 +39,7 @@ ENV GOCACHE /go/.cache
 RUN mkdir -p ${GOPATH}/src ${GOPATH}/bin ${GOPATH}/pkg && chmod -R 0777 /go
 ENV PATH /go/bin:$PATH
 '''
-/* groovylint-disable GStringExpressionWithinString */
+/** groovylint-disable GStringExpressionWithinString */
 final String DockerFileProdTemplate = '''\
 $dockerFileHeadText
 WORKDIR $workDir
@@ -51,12 +51,11 @@ ENTRYPOINT ["/usr/bin/$appBinaryName"]
 
 node(env.JENKINS_NODE) {
     wrap([$class: 'TimestamperBuildWrapper']) {
-
-        // Serialize environment variables into map to make check with .containsKey method possible
-        Map envVars = [:]
-        env.getEnvironment().each { name, value -> envVars.put(name, value) }
-
-        // Pipeline parameters injecting and error handling
+        String msgSplit = '-' * 90
+        /** Serialize environment variables into map to make check with .containsKey method possible */
+        // groovylint-disable-next-line UnnecessaryGetter
+        Map envVars = env.getEnvironment().collectEntries { k, v -> [k, v] }
+        /** Pipeline parameters injecting and error handling */
         if (!envVars.containsKey('APP_POSTTEST_COMMAND') || !envVars.containsKey('RACE_COVER_TEST_FLAGS') ||
                 !envVars.containsKey('JENKINS_NODE') || !envVars.containsKey('GIT_PROJECT_PATH') ||
                 !envVars.containsKey('GIT_URL')) {
@@ -87,13 +86,14 @@ node(env.JENKINS_NODE) {
                     )
             ])
             println "Pipeline parameters was successfully injected. Select 'Build with parameters' and run again."
+            // groovylint-disable-next-line UnnecessaryGetter
             currentBuild.build().getExecutor().interrupt(Result.SUCCESS)
             sleep(time: 3, unit: 'SECONDS')
         }
         if (!env.GIT_URL?.trim())
             error 'GIT_URL is not defined. Please set-up and run again.'
 
-        // Build docker image, clone repo and go test
+        /** Build docker image, clone repo and go test */
         String appBinaryName
         String appTestFlags = (env.RACE_COVER_TEST_FLAGS.toBoolean()) ? '-race -cover' : ''
         if (env.GIT_PROJECT_PATH?.trim()) {
@@ -104,7 +104,7 @@ node(env.JENKINS_NODE) {
         dir('test-image') {
             writeFile file: 'Dockerfile', text: String.format(DockerFileTestText, DockerFileHeadText)
         }
-        println String.format('%s\nBuilding test container...', ('-' * 90))
+        println String.format('%s\nBuilding test container...', msgSplit)
         Object testImage = docker.build(String.format('test-image:%s', env.BUILD_ID), String.format('%s/test-image',
                 env.WORKSPACE))
         testImage.inside {
@@ -116,11 +116,10 @@ node(env.JENKINS_NODE) {
                     if (sh(returnStatus: true, returnStdout: true,
                             script: String.format('set -e; cd %s; ls -lha /go; go test %s',
                                     env.GIT_PROJECT_PATH, appTestFlags)) != 0)
-                        error String.format(
-                                '%s\nTesting failed, other stages will be skiped due of pipeline termination.',
-                                ('-' * 90))
+                        error String.format('%s\nTesting failed, other stages will be skiped due of pipeline %s.',
+                                msgSplit, 'termination')
                 }
-                println String.format('%s\nTesting ok, building and creating container with app...', ('-' * 90))
+                println String.format('%s\nTesting ok, building and creating container with app...', msgSplit)
                 stage('Build & stash binary') {
                     dir(env.GIT_PROJECT_PATH) {
                         sh 'go build; ls -lh'
@@ -130,7 +129,7 @@ node(env.JENKINS_NODE) {
             }
         }
 
-        // Build docker container with app
+        /** Build docker container with app */
         dir('prod-image') {
             unstash 'bin-stash'
             Map prodImageDockerfileVariableBinding = [dockerFileHeadText: DockerFileHeadText,
@@ -140,19 +139,19 @@ node(env.JENKINS_NODE) {
                     .make(prodImageDockerfileVariableBinding)
             writeFile file: 'Dockerfile', text: prodImageDockerfileText
         }
-        println String.format('%s\nBuilding app container...', ('-' * 90))
+        println String.format('%s\nBuilding app container...', msgSplit)
         Object prodImage = docker.build(String.format('prod-image:%s', env.BUILD_ID),
                 String.format('%s/prod-image', env.WORKSPACE))
 
-        // Run post-test command to ensure app working and archive artifacts
+        /** Run post-test command to ensure app working and archive artifacts */
         stage('Post-test command & artefacts') {
             prodImage.withRun(String.format('-p 80:8080 --entrypoint /usr/bin/%s', appBinaryName)) { c ->
-                println('-' * 90)
+                println(msgSplit)
                 if (env.APP_POSTTEST_COMMAND?.trim())
                     if (sh(returnStatus: true, script: env.APP_POSTTEST_COMMAND) != 0)
-                        error String.format('\nPost-test command failed, no artefacts will be returned.', ('-' * 90))
+                        error String.format('\nPost-test command failed, no artefacts will be returned.', msgSplit)
 
-                println String.format('\nPreparing application and container export...', ('-' * 90))
+                println String.format('\nPreparing application and container export...', msgSplit)
                 String prodImageIdScript = String.format(
                         "docker ps --format '{{.ID}} {{.Image}}' | grep 'prod-image:%s' | awk '{print \$1}'",
                         env.BUILD_ID)
@@ -161,10 +160,8 @@ node(env.JENKINS_NODE) {
                 dir('export') {
                     sh String.format('''rm -rf *; docker export --output="container.tar" %s''', prodImageId)
                 }
-
             }
             archiveArtifacts allowEmptyArchive: true, artifacts: String.format('export/*.tar, %s', appBinaryName)
         }
-
     }
 }

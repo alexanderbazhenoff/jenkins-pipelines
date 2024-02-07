@@ -91,8 +91,9 @@ static String readableError(Throwable error) {
  * @param eventNum - event type: debug, info, etc...
  * @param text - text to output
  */
+// groovylint-disable-next-line MethodReturnTypeRequired, NoDef
 def outMsg(Integer eventNum, String text) {
-    wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) { // groovylint-disable-line
+    wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
         List eventTypes = [
                 '\033[0;34mDEBUG\033[0m',
                 '\033[0;32mINFO\033[0m',
@@ -120,16 +121,13 @@ def outMsg(Integer eventNum, String text) {
  */
 Boolean runAnsible(String ansiblePlaybookText, String ansibleInventoryText, String ansibleGitlabUrl,
                    String ansibleGitlabBranch, String gitCredentialsID, String ansibleExtras = '') {
-    Boolean ansibleExecution = true
     try {
         dir('ansible') {
-            sh 'sudo rm -rf *'
+            sh 'sudo rm -rf ./*'
             git branch: ansibleGitlabBranch, credentialsId: gitCredentialsID, url: ansibleGitlabUrl
             if (sh(returnStdout: true, returnStatus: true, script: '''ansible-galaxy collection build
-                        ansible-galaxy collection install $(ls -1 | grep ".tar.gz") -f''') != 0) {
-                outMsg(3, 'There was an error building and installing ansible collection.')
-                sh 'exit 1'
-            }
+                        ansible-galaxy collection install $(ls -1 | grep ".tar.gz") -f''') != 0)
+                error 'There was an error building and installing ansible collection.'
             writeFile file: 'inventory.ini', text: ansibleInventoryText
             writeFile file: 'execute.yml', text: ansiblePlaybookText
             outMsg(1, String.format('Running from:\n%s\n%s', ansiblePlaybookText, ('-' * 32)))
@@ -137,23 +135,22 @@ Boolean runAnsible(String ansiblePlaybookText, String ansibleInventoryText, Stri
                     'ANSIBLE_STDOUT_CALLBACK=yaml ANSIBLE_FORCE_COLOR=true', 'execute.yml', 'inventory.ini',
                     ansibleExtras)
         }
-    } catch (Exception err) { // groovylint-disable-line
+    } catch (Exception err) {
         outMsg(3, String.format('Running ansible failed: %s', readableError(err)))
-        ansibleExecution = false
+        return false
     } finally {
         sh 'sudo rm -f ansible/inventory.ini'
     }
-    ansibleExecution
+    true
 }
 
 
 node(env.JENKINS_NODE) {
     wrap([$class: 'TimestamperBuildWrapper']) {
-
-        // Pipeline parameters check and inject (first run)
-        Map envVars = [:]
+        /** Pipeline parameters check and inject (first run). */
         Boolean pipelineVariableNotDefined = false
-        env.getEnvironment().each { name, value -> envVars.put(name, value) } // groovylint-disable-line
+        // groovylint-disable-next-line UnnecessaryGetter
+        Map envVars = env.getEnvironment().collectEntries { k, v -> [k, v] }
         List requiredVariablesList = ['IP_LIST',
                                       'SSH_LOGIN',
                                       'SSH_PASSWORD',
@@ -232,11 +229,11 @@ node(env.JENKINS_NODE) {
             ])
             outMsg(1,
                     "Pipeline parameters was successfully injected. Select 'Build with parameters' and run again.")
-            currentBuild.build().getExecutor().interrupt(Result.SUCCESS) // groovylint-disable-line
+            currentBuild.build().getExecutor().interrupt(Result.SUCCESS) // groovylint-disable-line UnnecessaryGetter
             sleep(time: 3, unit: 'SECONDS')
         }
 
-        // Check and handling required pipeline parameters
+        /** Check and handling required pipeline parameters */
         Boolean errorsFound = false
         requiredVariablesList.each {
             if (params.containsKey(it) && !env[it.toString()]?.trim()) {
@@ -246,13 +243,12 @@ node(env.JENKINS_NODE) {
         }
         if (errorsFound)
             error 'Missing or incorrect pipeline parameter(s).'
-
         if (!env.SSH_SUDO_PASSWORD?.trim()) {
             outMsg(2, 'SSH_SUDO_PASSWORD wasn\'t set, will be taken from SSH_PASSWORD.')
             env.SSH_SUDO_PASSWORD = env.SSH_PASSWORD
         }
 
-        // Parameters bind and templating playbook and inventory
+        /** Parameters bind and templating playbook and inventory */
         Map ansiblePlaybookVariableBinding = [
                 install_v2_agent      : env.INSTALL_AGENT_V2,
                 network_bridge_name   : env.CUSTOMIZE_AGENT,
@@ -281,13 +277,12 @@ node(env.JENKINS_NODE) {
         String ansibleInventoryText = new StreamingTemplateEngine().createTemplate(AnsibleInventoryTemplate)
                 .make(ansibleInventoryVariableBinding)
 
-        // Clean SSH hosts fingerprints from ~/.ssh/known_hosts
-        env.IP_LIST.split(' ').toList().each {
+        /** Clean SSH hosts fingerprints from ~/.ssh/known_hosts */
+        env.IP_LIST.tokenize().each {
             sh String.format('ssh-keygen -f "%s/.ssh/known_hosts" -R %s', env.HOME, it)
-            /* groovylint-disable UnnecessaryToString */
+            // groovylint-disable-next-line UnnecessaryToString
             String ipAddress = sh(script: String.format('getent hosts %s | cut -d\' \' -f1', it), returnStdout: true)
                     .toString()
-            /* groovylint-enable UnnecessaryToString */
             if (ipAddress?.trim())
                 sh String.format('ssh-keygen -f "%s/.ssh/known_hosts" -R %s', env.HOME, ipAddress)
         }
@@ -295,10 +290,9 @@ node(env.JENKINS_NODE) {
         // Run ansible role
         String ansibleVerbose = (env.DEBUG_MODE.toBoolean()) ? '-vvvv' : ''
         wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
-            if (!runAnsible(ansiblePlaybookText, ansibleInventoryText, env.ANSIBLE_GIT_URL, env.ANSIBLE_GIT_BRANCH,
-                    AnsibleGitCredentialsId, ansibleVerbose))
+            if (!runAnsible(ansiblePlaybookText, ansibleInventoryText, env.ANSIBLE_GIT_URL as String,
+                    env.ANSIBLE_GIT_BRANCH as String, AnsibleGitCredentialsId, ansibleVerbose))
                 error 'Ansible playbook execution failed.'
         }
-
     }
 }
